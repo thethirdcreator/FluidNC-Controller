@@ -26,6 +26,26 @@ U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 
 void keypadEvent(KeypadEvent key);
 
+hw_timer_t *BaseTimer = NULL;
+volatile uint64_t isrCounter = 0;
+volatile uint64_t displayTime = 0;
+volatile char key;
+
+void ARDUINO_ISR_ATTR onTimer() {
+
+// if(displayTime+100 < (uint8_t)timerRead(BaseTimer))
+key = keypad.getKey();
+// else
+// displayTime = (uint8_t)timerRead(BaseTimer);
+
+// Serial.print("ISR counter: ");
+// Serial.println(isrCounter);
+// Serial.print("Display time: ");
+// Serial.println((uint8_t)timerRead(BaseTimer));
+
+isrCounter++;
+}
+
 
 void setup() {
 
@@ -46,7 +66,10 @@ void setup() {
   // lcd.clear();
 
   keypad.addEventListener(keypadEvent);
-  //keypad.setHoldTime(2000);
+
+  BaseTimer = timerBegin(1000);
+  timerAttachInterrupt(BaseTimer, &onTimer);
+  timerAlarm(BaseTimer, 100, true, 0);
 
   Serial.print("Xpos = ");
   Serial.println(Fence.xPos);
@@ -64,10 +87,13 @@ void setup() {
 
 void loop() {
 
-  lcd_update();
-  // draw();
-  // get_input();
-  char key = keypad.getKey();
+  // lcd_update(); //1604 display only
+  displayTime = millis();
+  draw(); //12864 display only
+  Serial.print("Draw time: ");
+  Serial.println((millis() - displayTime));
+
+  // char key = keypad.getKey();
   fenceReceiveUart();
 
   delay(100);  // this speeds up the simulation
@@ -85,6 +111,9 @@ void draw() {
     u8g2.drawGlyph(5, 20, 0x2603); // снеговик
     u8g2.setCursor(0, 20);
     u8g2.drawGlyph(5, 60, 0x2615); // Кофе
+
+    u8g2.setCursor(50, 50);
+    u8g2.print(isrCounter);
   } while (u8g2.nextPage());
 }
 
