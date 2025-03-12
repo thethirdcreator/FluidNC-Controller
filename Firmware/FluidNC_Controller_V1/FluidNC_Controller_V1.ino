@@ -1,26 +1,9 @@
-#include <LiquidCrystal_I2C.h>
 #include <U8g2lib.h>
-//#include <ESP32TimerInterrupt.h>
 #include "FluidNC_Ctrl.h"
 #include "FenceParser.h"
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
-#define LCD_I2C_ADDR 0x27
-#define LCD_COLUMNS 16
-#define LCD_LINES 2
-
-#define B_COORD_REL 1
-#define B_COORD_ABS 0
-
-#define MIN_POS 2
-
-//LCD DEFINES
-#define LCD_HOME_INF (0, 0)
-#define LCD_POS_INF (0, 7)
-#define LCD_COORD_INF (1, 0)
-
-LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLUMNS, LCD_LINES);
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 // FluidNC_Class Fence(); // Объявление происходит в файле описания класса. Костыль.
 
@@ -28,16 +11,11 @@ void keypadEvent(KeypadEvent key);
 
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
-volatile uint64_t displayTime = 0;
-volatile uint64_t keypadTime = 0;
-unsigned long long newCall;
-static volatile unsigned long long lastCall;
+// volatile uint64_t displayTime = 0;
+// volatile uint64_t keypadTime = 0;
 volatile char key;
 
-portMUX_TYPE displayMux = portMUX_INITIALIZER_UNLOCKED;
-
 void ARDUINO_ISR_ATTR onTimer() {
-
 // key = keypad.getKey();
 
 // newCall = millis();
@@ -46,7 +24,6 @@ void ARDUINO_ISR_ATTR onTimer() {
   // draw();
   // // portEXIT_CRITICAL_ISR(&displayMux);
   // }
-
 
 // lastCall = millis();
 
@@ -68,16 +45,6 @@ void setup() {
   timerAttachInterrupt(BaseTimer, &onTimer);
   timerAlarm(BaseTimer, 100, true, 0);
 
-  // Serial.print("Xpos = ");
-  // Serial.println(Fence.xPos);
-  // Serial.print("Ypos = ");
-  // Serial.println(Fence.yPos);
-  // Serial.print("Zpos = ");
-  // Serial.println(Fence.zPos);
-  // Serial.print("MINpos = ");
-  // Serial.println(Fence.minPos);
-  // Serial.print("MAXpos = ");
-  // Serial.println(Fence.maxPos);
 }
 
 void loop() {
@@ -115,100 +82,6 @@ void draw() {
   } while (u8g2.nextPage());
 }
 
-void lcd_update() {
-  unsigned long long newCall = millis();
-  static unsigned long long lastCall;
-
-  if ((newCall - lastCall) < 200)
-    return;
-
-  lastCall = millis();
-
-  lcd.clear();
-  //Отрисовываем статус
-  lcd.setCursor(0, 0);
-  switch (Fence.status) {
-    case FENCE_STATUS_STARTED:
-      lcd.print("Need homing");
-      break;
-    case FENCE_STATUS_IDLE:
-      lcd.print("Idle");
-      break;
-    case FENCE_STATUS_JOG:
-      lcd.print("Moving");
-      break;
-    case FENCE_STATUS_HOMING:
-      lcd.print("Homing");
-      break;
-    case FENCE_STATUS_ALARM:
-      lcd.print("ALARM");
-      break;
-    default:
-      lcd.print("ERROR");
-      break;
-  }
-
-  //Отрисовываем текущее положение
-  lcd.setCursor(0, 1);
-  if (Fence.b_isHomed)
-    lcd.print(Fence.xPos);
-  else {
-    lcd.print("POS=?");
-  }
-  //Отрисовываем вводимое расстояние
-  lcd.setCursor(7, 1);
-  lcd.print(Fence.inputPos);
-}
-
-
-
-void get_input() {
-
-  // char key = keypad.getKey();
-
-  // if (key >= '0' && key <= '9') {
-  //   if ((Fence.inputPos.length() <= 4))
-  //     Fence.inputPos += key;
-
-  //   if (Fence.inputPos.toInt() > 1500)
-  //     Fence.inputPos = "";
-
-  //   Serial.println(Fence.inputPos);
-  // }
-
-
-  // // else
-  // switch (key)
-  // {
-  //   case 'A': //F1
-  //     Fence.changeStatus(FENCE_HOMED_OK);
-  //     break;
-  //   case 'B': { //F2
-
-  //       Serial.println("Home");
-  //       Serial1.print("$H");
-  //       Serial1.print('\n');
-
-  //       break;
-  //     }
-  //   case 'C': //,
-  //     // Fence.b_IsAbsCoord = Fence.b_IsAbsCoord? 0:1;
-  //     break;
-  //   case 'D': //OK
-  //     setPosition( 0, B_COORD_ABS);
-  //     break;
-  //   case '#': //<-
-  //     setPosition( 0, B_COORD_REL);
-  //     break;
-  //   case '*': //->
-  //     setPosition( 1, B_COORD_REL);
-  //     break;
-
-  // }
-}
-
-
-
 void setPosition(int dir, int b_isRel) {
 
   if (Fence.inputPos.length() == 0)
@@ -234,10 +107,6 @@ void setPosition(int dir, int b_isRel) {
 
   Fence.inputPos = "";
 }
-//G53 - abs
-//G91 - rel
-//G21 - mm
-// $  - gcode cmd
 
 void jog(int dir) {
   Serial1.print("$J=");
@@ -255,7 +124,8 @@ void jog(int dir) {
   Serial1.write(0x0A);
 }
 
-
+#define B_COORD_ABS 0 //удалить
+#define B_COORD_REL 0 //удалить
 void keypadEvent(KeypadEvent key) 
 {
   switch (keypad.getState()) 

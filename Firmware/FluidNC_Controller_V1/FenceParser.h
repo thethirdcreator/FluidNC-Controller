@@ -105,12 +105,9 @@ pch = strtok (NULL, " <>|:,"); // MPos
 Fence.xPos = atof(strtok (NULL, " <>|:,")); //X
 Fence.yPos = atof(strtok (NULL, " <>|:,")); //Y
 Fence.zPos = atof(strtok (NULL, " <>|:,")); //Z
-
-
 }
 
-void flushUart()
-{
+void flushUart(){
    memset(UART_RX_Data, '\0', sizeof(UART_RX_Data));
 }
 
