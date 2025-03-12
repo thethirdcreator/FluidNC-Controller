@@ -29,19 +29,26 @@ void keypadEvent(KeypadEvent key);
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
 volatile uint64_t displayTime = 0;
+volatile uint64_t keypadTime = 0;
+unsigned long long newCall;
+static volatile unsigned long long lastCall;
 volatile char key;
+
+portMUX_TYPE displayMux = portMUX_INITIALIZER_UNLOCKED;
 
 void ARDUINO_ISR_ATTR onTimer() {
 
-// if(displayTime+100 < (uint8_t)timerRead(BaseTimer))
-key = keypad.getKey();
-// else
-// displayTime = (uint8_t)timerRead(BaseTimer);
+// key = keypad.getKey();
 
-// Serial.print("ISR counter: ");
-// Serial.println(isrCounter);
-// Serial.print("Display time: ");
-// Serial.println((uint8_t)timerRead(BaseTimer));
+// newCall = millis();
+  // if ((newCall - lastCall) > 100){
+  // // portENTER_CRITICAL_ISR(&displayMux);
+  // draw();
+  // // portEXIT_CRITICAL_ISR(&displayMux);
+  // }
+
+
+// lastCall = millis();
 
 isrCounter++;
 }
@@ -52,18 +59,8 @@ void setup() {
   Serial.begin(115200);                       //Debug serial through USB-C
   Serial1.begin(115200, SERIAL_8N1, 39, 40);  // Main serial to communicate with Fence //Serial1.begin(BAUD, SERIAL_8N1, RX_GPIO, TX_GPIO);
 
-  // Wire.begin(33, 35);  //I2C pins for LCD
-  // lcd.init();
-  // lcd.backlight();
-
   u8g2.begin();
   u8g2.setBusClock(400000);
-
-  // lcd.clear();
-  // lcd.setCursor(0, 0);
-  // lcd.print("Fence Ready!");
-  delay(1000);
-  // lcd.clear();
 
   keypad.addEventListener(keypadEvent);
 
@@ -71,32 +68,33 @@ void setup() {
   timerAttachInterrupt(BaseTimer, &onTimer);
   timerAlarm(BaseTimer, 100, true, 0);
 
-  Serial.print("Xpos = ");
-  Serial.println(Fence.xPos);
-  Serial.print("Ypos = ");
-  Serial.println(Fence.yPos);
-  Serial.print("Zpos = ");
-  Serial.println(Fence.zPos);
-  Serial.print("MINpos = ");
-  Serial.println(Fence.minPos);
-  Serial.print("MAXpos = ");
-  Serial.println(Fence.maxPos);
-
-  draw();
+  // Serial.print("Xpos = ");
+  // Serial.println(Fence.xPos);
+  // Serial.print("Ypos = ");
+  // Serial.println(Fence.yPos);
+  // Serial.print("Zpos = ");
+  // Serial.println(Fence.zPos);
+  // Serial.print("MINpos = ");
+  // Serial.println(Fence.minPos);
+  // Serial.print("MAXpos = ");
+  // Serial.println(Fence.maxPos);
 }
 
 void loop() {
 
-  // lcd_update(); //1604 display only
-  displayTime = millis();
+  // displayTime = millis();
+  // if ((millis() - lastCall) > 100)
   draw(); //12864 display only
-  Serial.print("Draw time: ");
-  Serial.println((millis() - displayTime));
+  // lastCall = millis();
+  // Serial.print("Draw time: ");
+  // Serial.println((millis() - displayTime));
 
-  // char key = keypad.getKey();
+  // keypadTime = millis();
+  key = keypad.getKey();
+  // Serial.print("Keypad time: ");
+  // Serial.println((millis() - keypadTime));
+
   fenceReceiveUart();
-
-  delay(100);  // this speeds up the simulation
 }
 
 void draw() {
