@@ -1,11 +1,20 @@
 #include <U8g2lib.h>
+#include <AutoOTA.h>
+#include <WiFi.h>
+#include "WiFiList.h"
 #include "FluidNC_Ctrl.h"
 #include "FenceParser.h"
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
+#define FluidNC_Controller_Ver "1.02"
+
+#define DebugPrint(X) Serial.print(X)
+#define DebugPrintln(X) Serial.println(X) 
+#define CNCPrint(X) Serial1.print(X)
+#define CNCPrintln(X) Serial1.println(X)
+
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
-// FluidNC_Class Fence(); // Объявление происходит в файле описания класса. Костыль.
 
 void keypadEvent(KeypadEvent key);
 
@@ -45,6 +54,25 @@ void setup() {
   timerAttachInterrupt(BaseTimer, &onTimer);
   timerAlarm(BaseTimer, 100, true, 0);
 
+  DebugPrintln("Started debug");
+  Serial.println("Started serial");
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+  delay(500);
+  DebugPrintln("Connecting to WiFi..");
+}
+  DebugPrintln("");
+  DebugPrintln("WiFi connected");
+  DebugPrint("IP address: ");
+  DebugPrintln(WiFi.localIP());
+
+  AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/tree/master/Firmware/FluidNC_Controller_V1");
+if (ota.checkUpdate()) {
+    ota.updateNow();
+}
+
 }
 
 void loop() {
@@ -77,8 +105,12 @@ void draw() {
     u8g2.setCursor(0, 20);
     u8g2.drawGlyph(5, 60, 0x2615); // Кофе
 
+    u8g2.setCursor(50, 10);
+    u8g2.print(WiFi.localIP());
     u8g2.setCursor(50, 50);
     u8g2.print(isrCounter);
+    u8g2.setCursor(50, 60);
+    u8g2.print(FluidNC_Controller_Ver);
   } while (u8g2.nextPage());
 }
 
@@ -132,7 +164,7 @@ void keypadEvent(KeypadEvent key)
   {
     case PRESSED:
     {
-        Serial.println(key);  // Дебаг для вывода нажатой кнопки
+        DebugPrintln(key);  // Дебаг для вывода нажатой кнопки
         if (Fence.b_isHomed) 
         {
           // isHomed == Ok-----------------------------------------
