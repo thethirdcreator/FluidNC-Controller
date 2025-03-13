@@ -53,29 +53,37 @@ void setup() {
   BaseTimer = timerBegin(1000);
   timerAttachInterrupt(BaseTimer, &onTimer);
   timerAlarm(BaseTimer, 100, true, 0);
-<<<<<<< HEAD
 
-  DebugPrintln("Started debug");
-  Serial.println("Started serial");
+  Serial.println("Started...");
 
   WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
+  String wifiStatus;
+  String localIp;
+  while (wifiStatus != WL_CONNECTED || wifiStatus !=WL_CONNECT_FAILED) {
   delay(500);
-  DebugPrintln("Connecting to WiFi..");
+  Serial.println("Connecting to WiFi..");
+  wifiStatus = WiFi.status();
 }
-  DebugPrintln("");
-  DebugPrintln("WiFi connected");
-  DebugPrint("IP address: ");
-  DebugPrintln(WiFi.localIP());
+if(wifiStatus == WL_CONNECTED){
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.print("IP address: ");
+  localIp = WiFi.localIP();
+  Serial.println(localIp);
+}
+else
+{ 
+  Serial.println("");
+  Serial.println("Connection failed");
+  localIp = "Not Connected"
+}
 
   AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/tree/master/Firmware/FluidNC_Controller_V1");
 if (ota.checkUpdate()) {
     ota.updateNow();
 }
 
-=======
->>>>>>> 83dffa7275671c8b10b095c999927ef751bcc29b
+
 }
 
 void loop() {
@@ -108,11 +116,11 @@ void draw() {
     u8g2.setCursor(0, 20);
     u8g2.drawGlyph(5, 60, 0x2615);  // Кофе
 
-    u8g2.setCursor(50, 10);
+    u8g2.setCursor(20, 10);
     u8g2.print(WiFi.localIP());
     u8g2.setCursor(50, 50);
     u8g2.print(isrCounter);
-    u8g2.setCursor(50, 60);
+    u8g2.setCursor(20, 60);
     u8g2.print(FluidNC_Controller_Ver);
   } while (u8g2.nextPage());
 }
@@ -164,16 +172,10 @@ void jog(int dir) {
 void keypadEvent(KeypadEvent key) {
   switch (keypad.getState()) {
     case PRESSED:
-<<<<<<< HEAD
     {
-        DebugPrintln(key);  // Дебаг для вывода нажатой кнопки
+        Serial.println(key);  // Дебаг для вывода нажатой кнопки
         if (Fence.b_isHomed) 
         {
-=======
-      {
-        Serial.println(key);  // Дебаг для вывода нажатой кнопки
-        if (Fence.b_isHomed) {
->>>>>>> 83dffa7275671c8b10b095c999927ef751bcc29b
           // isHomed == Ok-----------------------------------------
           if (key >= '0' && key <= '9') {
             if ((Fence.inputPos.length() <= 4))
