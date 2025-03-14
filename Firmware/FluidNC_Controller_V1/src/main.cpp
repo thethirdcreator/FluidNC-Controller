@@ -8,7 +8,7 @@
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
-#define FluidNC_Controller_Ver "1.1"
+#define FluidNC_Controller_Ver "1.0"
 
 #define DebugPrint(X) Serial.print(X)
 #define DebugPrintln(X) Serial.println(X)
@@ -16,7 +16,7 @@
 #define CNCPrintln(X) Serial1.println(X)
 
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
-AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/refs/heads/master/Firmware/FluidNC_Controller_V1/project.json");
+AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/refs/heads/master/Firmware/FluidNC_Controller_V1/src/project.json");
 
 void keypadEvent(KeypadEvent key);
 
