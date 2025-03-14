@@ -10,7 +10,7 @@
 #define FluidNC_Controller_Ver "1.02"
 
 #define DebugPrint(X) Serial.print(X)
-#define DebugPrintln(X) Serial.println(X) 
+#define DebugPrintln(X) Serial.println(X)
 #define CNCPrint(X) Serial1.print(X)
 #define CNCPrintln(X) Serial1.println(X)
 
@@ -59,31 +59,27 @@ void setup() {
   WiFi.begin(ssid, password);
   String wifiStatus;
   String localIp;
-  while (wifiStatus != WL_CONNECTED || wifiStatus !=WL_CONNECT_FAILED) {
-  delay(500);
-  Serial.println("Connecting to WiFi..");
-  wifiStatus = WiFi.status();
-}
-if(wifiStatus == WL_CONNECTED){
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.print("IP address: ");
-  localIp = WiFi.localIP();
-  Serial.println(localIp);
-}
-else
-{ 
-  Serial.println("");
-  Serial.println("Connection failed");
-  localIp = "Not Connected"
-}
+  while (wifiStatus != WL_CONNECTED || wifiStatus != WL_CONNECT_FAILED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+    wifiStatus = WiFi.status();
+  }
+  if (wifiStatus == WL_CONNECTED) {
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.print("IP address: ");
+    localIp = WiFi.localIP();
+    Serial.println(localIp);
+  } else {
+    Serial.println("");
+    Serial.println("Connection failed");
+    localIp = "Not Connected"
+  }
 
   AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/tree/master/Firmware/FluidNC_Controller_V1");
-if (ota.checkUpdate()) {
+  if (ota.checkUpdate()) {
     ota.updateNow();
-}
-
-
+  }
 }
 
 void loop() {
@@ -172,10 +168,9 @@ void jog(int dir) {
 void keypadEvent(KeypadEvent key) {
   switch (keypad.getState()) {
     case PRESSED:
-    {
+      {
         Serial.println(key);  // Дебаг для вывода нажатой кнопки
-        if (Fence.b_isHomed) 
-        {
+        if (Fence.b_isHomed) {
           // isHomed == Ok-----------------------------------------
           if (key >= '0' && key <= '9') {
             if ((Fence.inputPos.length() <= 4))
