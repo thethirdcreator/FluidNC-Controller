@@ -8,7 +8,7 @@
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
-#define FluidNC_Controller_Ver "1.01"
+#define FluidNC_Controller_Ver "1.1"
 
 #define DebugPrint(X) Serial.print(X)
 #define DebugPrintln(X) Serial.println(X)

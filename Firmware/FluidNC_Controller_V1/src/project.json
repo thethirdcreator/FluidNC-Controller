@@ -1,16 +1,16 @@
 {
     "name": "FluidNC Controller",
     "about": " ",
-    "version": "1.01",
+    "version": "1.1",
     "notes": " ",
     "builds": [
       {
         "chipFamily": "ESP32-S2",
         "parts": [
-          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/Bin/Debug/FluidNC_Controller_V1.ino.bootloader.bin", "offset": 4096},
-          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/Bin/Debug/FluidNC_Controller_V1.ino.partitions.bin", "offset": 32768 },
-          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/Bin/Debug/boot_app0.bin", "offset": 57344 },
-          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/Bin/Debug/FluidNC_Controller_V1.ino.bin", "offset": 65536 }
+          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/src/Bin/Debug/Platformio/bootloader.bin", "offset": 4096},
+          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/src/Bin/Debug/Platformio/partitions.bin", "offset": 32768 },
+          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/src/Bin/Debug/Platformio/boot_app0.bin", "offset": 57344 },
+          { "path": "https://github.com/thethirdcreator/FluidNC-Controller/raw/refs/heads/master/Firmware/FluidNC_Controller_V1/src/Bin/Debug/Platformio/firmware.bin", "offset": 65536 }
         ]
       }
     ]
