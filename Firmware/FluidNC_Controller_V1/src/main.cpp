@@ -2,13 +2,16 @@
 #include <U8g2lib.h>
 #include <AutoOTA.h>
 #include <WiFi.h>
+#include <menu.h>
+#include <menuIO/serialOut.h>
+#include <menuIO/serialIn.h>
 #include "WiFiList.h"
 #include "FluidNC_Ctrl.h"
 #include "FenceParser.h"
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
-#define FluidNC_Controller_Ver "1.0"
+#define FluidNC_Controller_Ver "0.9"
 
 #define DebugPrint(X) Serial.print(X)
 #define DebugPrintln(X) Serial.println(X)
@@ -33,22 +36,10 @@ void keypadEvent(KeypadEvent key);
 
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
-// volatile uint64_t displayTime = 0;
-// volatile uint64_t keypadTime = 0;
 volatile char key;
 
 void ARDUINO_ISR_ATTR onTimer()
 {
-  // key = keypad.getKey();
-
-  // newCall = millis();
-  // if ((newCall - lastCall) > 100){
-  // // portENTER_CRITICAL_ISR(&displayMux);
-  // draw();
-  // // portEXIT_CRITICAL_ISR(&displayMux);
-  // }
-
-  // lastCall = millis();
 
   isrCounter++;
 }
@@ -74,23 +65,23 @@ void setup()
   Serial.println(ssid);
 
   Serial.println(WiFi.begin(ssid, password));
-  
+
   wl_status_t WiFiStatus;
   Serial.println("Connecting to WiFi..");
   // while (WiFi.status() != WL_CONNECTED || WiFi.status() != WL_CONNECT_FAILED) {
-  do{
+  do
+  {
     delay(1000);
     WiFiStatus = WiFi.status();
     Serial.print(".");
     Serial.println(WiFiStatus);
-  }while (!((WiFiStatus == WL_CONNECTED) || (WiFiStatus == WL_CONNECT_FAILED)|| (WiFiStatus == WL_DISCONNECTED)));
+  } while (!((WiFiStatus == WL_CONNECTED) || (WiFiStatus == WL_CONNECT_FAILED) || (WiFiStatus == WL_DISCONNECTED)));
 
   if (WiFiStatus == WL_CONNECTED)
   {
     Serial.println("");
     Serial.println("WiFi connected");
     Serial.print("IP address: ");
-    // localIp = WiFi.localIP();
     Serial.println(WiFi.localIP());
   }
   else
@@ -99,49 +90,40 @@ void setup()
     Serial.println("Connection failed");
   }
 
-  Serial.println("Checking update availability...");
-  Serial.print("Update status: ");
-  Serial.println(ota.checkUpdate());
-  if (ota.checkUpdate())
-  {
-    Serial.println("New version found!");
-    Serial.println("Updating in ...");
-    Serial.println("3");
-    delay(1000);
-    Serial.println("2");
-    delay(1000);
-    Serial.println("1");
-    delay(1000);
-    Serial.println("Performing an update...");
-    if(!ota.updateNow())
-    Serial.println("\n\nUpdate failed!");
-    AutoOTA::Error otaError = ota.getError();
-    Serial.println("Error: ");
-    Serial.println((uint8_t)otaError);
-  }
-  else 
-  {
-    Serial.print("Update error: ");
-    AutoOTA::Error otaError = ota.getError();
-    Serial.println((uint8_t)otaError);
-  }
+  // Serial.println("Checking update availability...");
+  // Serial.print("Update status: ");
+  // Serial.println(ota.checkUpdate());
+  // if (ota.checkUpdate())
+  // {
+  //   Serial.println("New version found!");
+  //   Serial.println("Updating in ...");
+  //   Serial.println("3");
+  //   delay(1000);
+  //   Serial.println("2");
+  //   delay(1000);
+  //   Serial.println("1");
+  //   delay(1000);
+  //   Serial.println("Performing an update...");
+  //   if (!ota.updateNow())
+  //     Serial.println("\n\nUpdate failed!");
+  //   AutoOTA::Error otaError = ota.getError();
+  //   Serial.println("Error: ");
+  //   Serial.println((uint8_t)otaError);
+  // }
+  // else
+  // {
+  //   Serial.print("Update error: ");
+  //   AutoOTA::Error otaError = ota.getError();
+  //   Serial.println((uint8_t)otaError);
+  // }
 }
 
 void loop()
 {
 
-  // displayTime = millis();
-  // if ((millis() - lastCall) > 100)
   draw(); // 12864 display only
-  // lastCall = millis();
-  // Serial.print("Draw time: ");
-  // Serial.println((millis() - displayTime));
-
-  // keypadTime = millis();
-  key = keypad.getKey();
-  // Serial.print("Keypad time: ");
-  // Serial.println((millis() - keypadTime));
-
+  // key = keypad.getKey();
+  keypad.getKey();
   fenceReceiveUart();
 }
 
