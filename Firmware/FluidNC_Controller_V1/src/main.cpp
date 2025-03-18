@@ -31,7 +31,6 @@
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/refs/heads/master/Firmware/FluidNC_Controller_V1/src/project.json");
 
-
 //=========================
 // Function prototypes
 //=========================
@@ -53,7 +52,6 @@ void ARDUINO_ISR_ATTR onTimer()
 
   isrCounter++;
 }
-
 
 void setup()
 {
@@ -127,7 +125,6 @@ void setup()
   //   AutoOTA::Error otaError = ota.getError();
   //   Serial.println((uint8_t)otaError);
   // }
-
 }
 
 void loop()
@@ -291,6 +288,11 @@ void keypadEvent(KeypadEvent key)
     case KPD_ESC:
     {
       Fence.inputPos = "";
+      break;
+    }
+    case KPD_F2:
+    {
+      CNCPrint("?\n");
       break;
     }
     }

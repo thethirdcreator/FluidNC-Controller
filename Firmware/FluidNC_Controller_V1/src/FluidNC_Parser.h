@@ -23,6 +23,8 @@ typedef class FluidNC_Parser_Class
 
   public:
 
+  
+
 
 };
 
