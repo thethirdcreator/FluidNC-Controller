@@ -1,48 +1,59 @@
 #include <Arduino.h>
-#include <U8g2lib.h>
-#include <AutoOTA.h>
+#include <U8g2lib.h> // Драйвер дисплея
+#include <AutoOTA.h> // Обновление по воздуху
 #include <WiFi.h>
-#include <menu.h>
+#include <menu.h> // Для отображения меню на дисплее и в Serial
 #include <menuIO/serialOut.h>
 #include <menuIO/serialIn.h>
+
 #include "WiFiList.h"
 #include "FluidNC_Ctrl.h"
 #include "FenceParser.h"
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
+//=========================
+// Firmware version
+//=========================
 #define FluidNC_Controller_Ver "0.9"
 
+//=========================
+// Defines
+//=========================
 #define DebugPrint(X) Serial.print(X)
 #define DebugPrintln(X) Serial.println(X)
 #define CNCPrint(X) Serial1.print(X)
 #define CNCPrintln(X) Serial1.println(X)
 
+//=========================
+// Objects
+//=========================
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/refs/heads/master/Firmware/FluidNC_Controller_V1/src/project.json");
 
-void keypadEvent(KeypadEvent key);
 
 //=========================
 // Function prototypes
 //=========================
+void keypadEvent(KeypadEvent key);
 void draw();
 void setPosition(int dir, int b_isRel);
 void jog(int dir);
 void keypadEvent(KeypadEvent key);
 //=========================
-// Function prototypes
+// Function prototypes end
 //=========================
 
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
-volatile char key;
+volatile char key; // Требуется для обработки клавиатуры?
 
 void ARDUINO_ISR_ATTR onTimer()
 {
 
   isrCounter++;
 }
+
 
 void setup()
 {
@@ -68,7 +79,7 @@ void setup()
 
   wl_status_t WiFiStatus;
   Serial.println("Connecting to WiFi..");
-  // while (WiFi.status() != WL_CONNECTED || WiFi.status() != WL_CONNECT_FAILED) {
+
   do
   {
     delay(1000);
@@ -106,7 +117,7 @@ void setup()
   //   Serial.println("Performing an update...");
   //   if (!ota.updateNow())
   //     Serial.println("\n\nUpdate failed!");
-  //   AutoOTA::Error otaError = ota.getError();
+  // AutoOTA::Error otaError = ota.getError();
   //   Serial.println("Error: ");
   //   Serial.println((uint8_t)otaError);
   // }
@@ -116,6 +127,7 @@ void setup()
   //   AutoOTA::Error otaError = ota.getError();
   //   Serial.println((uint8_t)otaError);
   // }
+
 }
 
 void loop()
