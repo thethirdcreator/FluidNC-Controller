@@ -38,6 +38,7 @@ private:
   // This variables are acquired from FluidNC settings
   //=========================
   float maxTravel, acceleration, steps, maxRate;
+  String fluidNCVersion;
 
   //=========================
   // This variables are acquired by processing settings and through user input
@@ -59,7 +60,7 @@ public:
   FluidHomingStatus getHomeingStatus();
 
   float getRealPos();  // Отправляет действительное положение
-  float getLocalPos(); // Отправляет действительное положение с поправкой на сдвиг (зубцов диска)
+  float getLocalPos(); // Отправляет действительное положение с поправкой на сдвиг (зубцов диска)5
   float getMin();      // Отдает float значение
   float getMax();      // Отдает float значение
 };

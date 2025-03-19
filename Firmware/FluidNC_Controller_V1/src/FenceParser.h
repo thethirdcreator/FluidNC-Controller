@@ -89,7 +89,10 @@ void parseMsg()
 }
 void parseCmd()
 {
-  Serial.println("This is a command");
+  Serial.println("Parsing setting:");
+  switch (UART_RX_Data[1])
+  {
+  }
 }
 void parseStatus()
 {

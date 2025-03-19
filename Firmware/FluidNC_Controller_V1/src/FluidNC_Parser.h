@@ -3,8 +3,6 @@
 
 #include <Arduino.h>
 
-
-
 #define _Port Serial1
 #define _EndMarker '\n'
 #define _MaxRxChars 255
@@ -27,17 +25,17 @@ class FluidNC_Parser_Class
 {
 
 public:
-typedef enum : int8_t
-{
-  PARSER_ERR_UNDEFINED = -127,
-  PARSER_REJECTED = -1,
-  PARSER_IDLE = 0,
-  PARSER_RECEIVED,
-  PARSER_BUSY,
-  PARSER_MESSAGE,
-  PARSER_COMMAND,
-  PARSER_STATUS
-}parser_status_t;
+  typedef enum : int8_t
+  {
+    PARSER_ERR_UNDEFINED = -127,
+    PARSER_REJECTED = -1,
+    PARSER_IDLE = 0,
+    PARSER_RECEIVED,
+    PARSER_BUSY,
+    PARSER_MESSAGE,
+    PARSER_COMMAND,
+    PARSER_STATUS
+  } parser_status_t;
 
 private:
   uint8_t rxNdx, ndx;
@@ -50,6 +48,7 @@ public:
   parser_status_t begin(); // do nothing
   parser_status_t poll();
   parser_status_t parse();
+  parser_status_t flush();
 
   FluidNC_Parser_Class()
   {
@@ -58,7 +57,6 @@ public:
     rxChar = '\0';
     memset(rxBuffer, '\0', sizeof(rxBuffer));
   }
-
 };
 
 #endif
