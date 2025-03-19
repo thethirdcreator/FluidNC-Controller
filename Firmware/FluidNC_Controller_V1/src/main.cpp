@@ -12,6 +12,8 @@
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
+#include "FluidNC_CNC.h"
+
 //=========================
 // Firmware version
 //=========================
@@ -115,7 +117,7 @@ void setup()
   //   Serial.println("Performing an update...");
   //   if (!ota.updateNow())
   //     Serial.println("\n\nUpdate failed!");
-  // AutoOTA::Error otaError = ota.getError();
+  AutoOTA::Error otaError = ota.getError();
   //   Serial.println("Error: ");
   //   Serial.println((uint8_t)otaError);
   // }
@@ -292,7 +294,7 @@ void keypadEvent(KeypadEvent key)
     }
     case KPD_F2:
     {
-      CNCPrint("?\n");
+      CNCPrint("$$\n");
       break;
     }
     }
