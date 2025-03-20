@@ -3,7 +3,10 @@
 #include <AutoOTA.h> // Обновление по воздуху
 #include <WiFi.h>
 #include <menu.h> // Для отображения меню на дисплее и в Serial
+#include <menuIO/chainStream.h>
+#include <menuIO/u8g2Out.h>
 #include <menuIO/serialOut.h>
+#include <menuIO/keypadIn.h>
 #include <menuIO/serialIn.h>
 
 #include "WiFiList.h"
@@ -17,7 +20,7 @@
 //=========================
 // Firmware version
 //=========================
-#define FluidNC_Controller_Ver "0.9"
+#define FluidNC_Controller_Ver "0.1"
 
 //=========================
 // Defines
@@ -31,7 +34,7 @@
 // Objects
 //=========================
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
-AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller/refs/heads/master/Firmware/FluidNC_Controller_V1/src/project.json");
+AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller-Updates");
 
 //=========================
 // Function prototypes
@@ -40,14 +43,12 @@ void keypadEvent(KeypadEvent key);
 void draw();
 void setPosition(int dir, int b_isRel);
 void jog(int dir);
-void keypadEvent(KeypadEvent key);
 //=========================
 // Function prototypes end
 //=========================
 
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
-volatile char key; // Требуется для обработки клавиатуры?
 
 void ARDUINO_ISR_ATTR onTimer()
 {
@@ -55,16 +56,89 @@ void ARDUINO_ISR_ATTR onTimer()
   isrCounter++;
 }
 
+// дебажная хуйня
+
+char _ssid[16] = {"SSID here      "};
+char _password[16] = {"Password here  "};
+
+char *constMEM hexDigit MEMMODE = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz%*)?@#$~-_ ";
+char *constMEM hexNr[] MEMMODE = {hexDigit};
+
+result resetAllNahui()
+{
+  ESP.restart();
+  return proceed;
+}
+
+int chooseTest = 1;
+CHOOSE(chooseTest, chooseMenu, "Choose", doNothing, noEvent, noStyle,
+       VALUE("First", 1, doNothing, noEvent),
+       VALUE("Second", 2, doNothing, noEvent),
+       VALUE("Third", 3, doNothing, noEvent),
+       VALUE("EbalRot", 4, doNothing, noEvent),
+       VALUE("HuiV04ko", 5, doNothing, noEvent),
+       VALUE("Suka", 6, doNothing, noEvent),
+       VALUE("Reset", 7, resetAllNahui, anyEvent));
+
+MENU(wifiMenu, "WiFi Settings", doNothing, noEvent, wrapStyle,
+     EDIT("SSID: ", _ssid, hexNr, doNothing, noEvent, noStyle),
+     EDIT("Password: ", _password, hexNr, doNothing, noEvent, noStyle),
+     SUBMENU(chooseMenu),
+     EXIT("<Back"));
+
+MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
+     OP("Ebalaika", doNothing, noEvent),
+     OP("Ebalaika2", doNothing, noEvent),
+     SUBMENU(wifiMenu),
+     EXIT("<Back"));
+
+#define MAX_DEPTH 3
+
+#define fontName u8g2_font_7x13_mf
+#define fontX 7
+#define fontY 16
+#define offsetX 0
+#define offsetY 3
+#define U8_Width 128
+#define U8_Height 64
+// #define USE_HWI2C
+
+// const colorDef<uint8_t> colors[6] MEMMODE = {
+//     {{0, 0}, {0, 1, 1}}, // bgColor
+//     {{1, 1}, {1, 0, 0}}, // fgColor
+//     {{1, 1}, {1, 0, 0}}, // valColor
+//     {{1, 1}, {1, 0, 0}}, // unitColor
+//     {{0, 1}, {0, 0, 1}}, // cursorColor
+//     {{1, 1}, {1, 0, 0}}, // titleColor
+// };
+
+// MENU_OUTPUTS(out, MAX_DEPTH,
+//              U8G2_OUT(u8g2, colors, fontX, fontY, offsetX, offsetY, {0, 0, U8_Width / fontX, U8_Height / fontY}),
+//              SERIAL_OUT(Serial));
+
+MENU_OUTPUTS(out, MAX_DEPTH,
+             SERIAL_OUT(Serial),
+             NONE);
+
+keypadIn myKpad(keypad);
+serialIn mySerialIn(Serial);
+MENU_INPUTS(myInputs, &myKpad, &mySerialIn);
+
+NAVROOT(nav, mainMenu, MAX_DEPTH, myInputs, out);
+
+// дебажная хуйня end
+
 void setup()
 {
 
   Serial.begin(115200);                      // Debug serial through USB-C
   Serial1.begin(115200, SERIAL_8N1, 39, 40); // Main serial to communicate with Fence //Serial1.begin(BAUD, SERIAL_8N1, RX_GPIO, TX_GPIO);
 
-  u8g2.begin();
   u8g2.setBusClock(400000);
+  u8g2.begin();
+  u8g2.enableUTF8Print();
 
-  keypad.addEventListener(keypadEvent);
+  // keypad.addEventListener(keypadEvent);
 
   // BaseTimer = timerBegin(1000, , true);
   // timerAttachInterrupt(BaseTimer, &onTimer);
@@ -101,32 +175,39 @@ void setup()
     Serial.println("Connection failed");
   }
 
-  // Serial.println("Checking update availability...");
-  // Serial.print("Update status: ");
-  // Serial.println(ota.checkUpdate());
-  // if (ota.checkUpdate())
-  // {
-  //   Serial.println("New version found!");
-  //   Serial.println("Updating in ...");
-  //   Serial.println("3");
-  //   delay(1000);
-  //   Serial.println("2");
-  //   delay(1000);
-  //   Serial.println("1");
-  //   delay(1000);
-  //   Serial.println("Performing an update...");
-  //   if (!ota.updateNow())
-  //     Serial.println("\n\nUpdate failed!");
-  AutoOTA::Error otaError = ota.getError();
-  //   Serial.println("Error: ");
-  //   Serial.println((uint8_t)otaError);
-  // }
-  // else
-  // {
-  //   Serial.print("Update error: ");
-  //   AutoOTA::Error otaError = ota.getError();
-  //   Serial.println((uint8_t)otaError);
-  // }
+  Serial.println("Checking update availability...");
+  Serial.print("Update status: ");
+  Serial.println(ota.checkUpdate());
+  if (ota.checkUpdate())
+  {
+    Serial.println("New version found!");
+    Serial.println("Updating in ...");
+    Serial.println("3");
+    delay(1000);
+    Serial.println("2");
+    delay(1000);
+    Serial.println("1");
+    delay(1000);
+    u8g2.firstPage();
+    do
+    {
+      u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
+      u8g2.setCursor(0, 32);
+      u8g2.print("Обновление");
+    } while (u8g2.nextPage());
+    Serial.println("Performing an update...");
+    if (!ota.updateNow())
+      Serial.println("\n\nUpdate failed!");
+    AutoOTA::Error otaError = ota.getError();
+    Serial.println("Error: ");
+    Serial.println((uint8_t)otaError);
+  }
+  else
+  {
+    Serial.print("Update error: ");
+    AutoOTA::Error otaError = ota.getError();
+    Serial.println((uint8_t)otaError);
+  }
 }
 
 void loop()
@@ -134,7 +215,8 @@ void loop()
 
   draw(); // 12864 display only
   // key = keypad.getKey();
-  keypad.getKey();
+  // keypad.getKey();
+  nav.poll();
   fenceReceiveUart();
 }
 
@@ -143,16 +225,11 @@ void draw()
   u8g2.firstPage();
   do
   {
-    u8g2.setFont(u8g2_font_ncenB14_tr); // Set Russian font
+    u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
     u8g2.setCursor(0, 32);
-    u8g2.print("Hello world!");
+    u8g2.print("Привет мир!");
 
-    u8g2.setFont(u8g2_font_unifont_t_symbols);
-    u8g2.setCursor(0, 0);
-    u8g2.drawGlyph(5, 20, 0x2603); // снеговик
-    u8g2.setCursor(0, 20);
-    u8g2.drawGlyph(5, 60, 0x2615); // Кофе
-
+    u8g2.setFont(u8g2_font_unifont_t_cyrillic);
     u8g2.setCursor(20, 10);
     u8g2.print(WiFi.localIP());
     u8g2.setCursor(50, 50);
