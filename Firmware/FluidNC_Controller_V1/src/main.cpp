@@ -2,12 +2,12 @@
 #include <U8g2lib.h> // Драйвер дисплея
 #include <AutoOTA.h> // Обновление по воздуху
 #include <WiFi.h>
-#include <menu.h> // Для отображения меню на дисплее и в Serial
-#include <menuIO/chainStream.h>
-#include <menuIO/u8g2Out.h>
-#include <menuIO/serialOut.h>
-#include <menuIO/keypadIn.h>
-#include <menuIO/serialIn.h>
+// #include <menu.h> // Для отображения меню на дисплее и в Serial
+// #include <menuIO/chainStream.h>
+// #include <menuIO/u8g2Out.h>
+// #include <menuIO/serialOut.h>
+// #include <menuIO/keypadIn.h>
+// #include <menuIO/serialIn.h>
 
 #include "WiFiList.h"
 #include "FluidNC_Ctrl.h"
@@ -15,12 +15,14 @@
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
+#include "FluidNC_Updater.h" // Ахуенный костыль. Переделать срочно
+
 #include "FluidNC_CNC.h"
 
 //=========================
 // Firmware version
 //=========================
-#define FluidNC_Controller_Ver "0.1"
+
 
 //=========================
 // Defines
@@ -33,8 +35,7 @@
 //=========================
 // Objects
 //=========================
-U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
-AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller-Updates");
+
 
 //=========================
 // Function prototypes
@@ -61,36 +62,36 @@ void ARDUINO_ISR_ATTR onTimer()
 char _ssid[16] = {"SSID here      "};
 char _password[16] = {"Password here  "};
 
-char *constMEM hexDigit MEMMODE = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz%*)?@#$~-_ ";
-char *constMEM hexNr[] MEMMODE = {hexDigit};
+// char *constMEM hexDigit MEMMODE = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz%*)?@#$~-_ ";
+// char *constMEM hexNr[] MEMMODE = {hexDigit};
 
-result resetAllNahui()
-{
-  ESP.restart();
-  return proceed;
-}
+// result resetAllNahui()
+// {
+//   ESP.restart();
+//   return proceed;
+// }
 
-int chooseTest = 1;
-CHOOSE(chooseTest, chooseMenu, "Choose", doNothing, noEvent, noStyle,
-       VALUE("First", 1, doNothing, noEvent),
-       VALUE("Second", 2, doNothing, noEvent),
-       VALUE("Third", 3, doNothing, noEvent),
-       VALUE("EbalRot", 4, doNothing, noEvent),
-       VALUE("HuiV04ko", 5, doNothing, noEvent),
-       VALUE("Suka", 6, doNothing, noEvent),
-       VALUE("Reset", 7, resetAllNahui, anyEvent));
+// int chooseTest = 1;
+// CHOOSE(chooseTest, chooseMenu, "Choose", doNothing, noEvent, noStyle,
+//        VALUE("First", 1, doNothing, noEvent),
+//        VALUE("Second", 2, doNothing, noEvent),
+//        VALUE("Third", 3, doNothing, noEvent),
+//        VALUE("EbalRot", 4, doNothing, noEvent),
+//        VALUE("HuiV04ko", 5, doNothing, noEvent),
+//        VALUE("Suka", 6, doNothing, noEvent),
+//        VALUE("Reset", 7, resetAllNahui, anyEvent));
 
-MENU(wifiMenu, "WiFi Settings", doNothing, noEvent, wrapStyle,
-     EDIT("SSID: ", _ssid, hexNr, doNothing, noEvent, noStyle),
-     EDIT("Password: ", _password, hexNr, doNothing, noEvent, noStyle),
-     SUBMENU(chooseMenu),
-     EXIT("<Back"));
+// MENU(wifiMenu, "WiFi Settings", doNothing, noEvent, wrapStyle,
+//      EDIT("SSID: ", _ssid, hexNr, doNothing, noEvent, noStyle),
+//      EDIT("Password: ", _password, hexNr, doNothing, noEvent, noStyle),
+//      SUBMENU(chooseMenu),
+//      EXIT("<Back"));
 
-MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
-     OP("Ebalaika", doNothing, noEvent),
-     OP("Ebalaika2", doNothing, noEvent),
-     SUBMENU(wifiMenu),
-     EXIT("<Back"));
+// MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
+//      OP("Ebalaika", doNothing, noEvent),
+//      OP("Ebalaika2", doNothing, noEvent),
+//      SUBMENU(wifiMenu),
+//      EXIT("<Back"));
 
 #define MAX_DEPTH 3
 
@@ -116,15 +117,16 @@ MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
 //              U8G2_OUT(u8g2, colors, fontX, fontY, offsetX, offsetY, {0, 0, U8_Width / fontX, U8_Height / fontY}),
 //              SERIAL_OUT(Serial));
 
-MENU_OUTPUTS(out, MAX_DEPTH,
-             SERIAL_OUT(Serial),
-             NONE);
+// MENU_OUTPUTS(out, MAX_DEPTH,
+//              SERIAL_OUT(Serial),
+//              NONE);
 
-keypadIn myKpad(keypad);
-serialIn mySerialIn(Serial);
-MENU_INPUTS(myInputs, &myKpad, &mySerialIn);
+// keypadIn myKpad(keypad);
+// serialIn mySerialIn(Serial);
+// MENU_INPUTS(myInputs, &myKpad, &mySerialIn);
+// MENU_INPUTS(myInputs, &mySerialIn, NONE);
 
-NAVROOT(nav, mainMenu, MAX_DEPTH, myInputs, out);
+// NAVROOT(nav, mainMenu, MAX_DEPTH, myInputs, out);
 
 // дебажная хуйня end
 
@@ -174,50 +176,19 @@ void setup()
     Serial.println("");
     Serial.println("Connection failed");
   }
-
-  Serial.println("Checking update availability...");
-  Serial.print("Update status: ");
-  Serial.println(ota.checkUpdate());
-  if (ota.checkUpdate())
-  {
-    Serial.println("New version found!");
-    Serial.println("Updating in ...");
-    Serial.println("3");
-    delay(1000);
-    Serial.println("2");
-    delay(1000);
-    Serial.println("1");
-    delay(1000);
-    u8g2.firstPage();
-    do
-    {
-      u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
-      u8g2.setCursor(0, 32);
-      u8g2.print("Обновление");
-    } while (u8g2.nextPage());
-    Serial.println("Performing an update...");
-    if (!ota.updateNow())
-      Serial.println("\n\nUpdate failed!");
-    AutoOTA::Error otaError = ota.getError();
-    Serial.println("Error: ");
-    Serial.println((uint8_t)otaError);
-  }
-  else
-  {
-    Serial.print("Update error: ");
-    AutoOTA::Error otaError = ota.getError();
-    Serial.println((uint8_t)otaError);
-  }
+ 
 }
 
 void loop()
 {
 
   draw(); // 12864 display only
-  // key = keypad.getKey();
+  static char key = keypad.getKey();
   // keypad.getKey();
-  nav.poll();
+  // nav.poll();
   fenceReceiveUart();
+  Serial1.print("$J=");
+  delay(100);
 }
 
 void draw()
@@ -227,15 +198,16 @@ void draw()
   {
     u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
     u8g2.setCursor(0, 32);
-    u8g2.print("Привет мир!");
 
-    u8g2.setFont(u8g2_font_unifont_t_cyrillic);
-    u8g2.setCursor(20, 10);
-    u8g2.print(WiFi.localIP());
-    u8g2.setCursor(50, 50);
-    u8g2.print(isrCounter);
-    u8g2.setCursor(20, 60);
+
+    u8g2.setFont(u8g2_font_spleen5x8_mr);
+    u8g2.setCursor(0, 10);
+    u8g2.print("V: ");
     u8g2.print(ota.version());
+
+    u8g2.setCursor(0, 64);
+    u8g2.print("IP: ");
+    u8g2.print(WiFi.localIP());
   } while (u8g2.nextPage());
 }
 
@@ -374,6 +346,12 @@ void keypadEvent(KeypadEvent key)
       CNCPrint("$$\n");
       break;
     }
+    case KPD_AST:
+    {
+      void FluidNC_Updater();
+      break;
+    }
+
     }
   }
 }
