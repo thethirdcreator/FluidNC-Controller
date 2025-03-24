@@ -23,7 +23,6 @@
 // Firmware version
 //=========================
 
-
 //=========================
 // Defines
 //=========================
@@ -36,7 +35,6 @@
 // Objects
 //=========================
 
-
 //=========================
 // Function prototypes
 //=========================
@@ -44,6 +42,7 @@ void keypadEvent(KeypadEvent key);
 void draw();
 void setPosition(int dir, int b_isRel);
 void jog(int dir);
+volatile char key;
 //=========================
 // Function prototypes end
 //=========================
@@ -139,15 +138,16 @@ void setup()
   u8g2.setBusClock(400000);
   u8g2.begin();
   u8g2.enableUTF8Print();
+  // u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
 
-  // keypad.addEventListener(keypadEvent);
+  keypad.addEventListener(keypadEvent);
 
   // BaseTimer = timerBegin(1000, , true);
   // timerAttachInterrupt(BaseTimer, &onTimer);
   // timerAlarmEnable(BaseTimer, 100, true, 0);
 
   Serial.println("Started...");
-  delay(10000);
+  // delay(10000);
   Serial.print("Trying to connect to ");
   Serial.println(ssid);
 
@@ -176,18 +176,18 @@ void setup()
     Serial.println("");
     Serial.println("Connection failed");
   }
- 
+
+  Serial1.print("$J=");
 }
 
 void loop()
 {
 
   draw(); // 12864 display only
-  static char key = keypad.getKey();
+  key = keypad.getKey();
   // keypad.getKey();
   // nav.poll();
   fenceReceiveUart();
-  Serial1.print("$J=");
   delay(100);
 }
 
@@ -196,18 +196,28 @@ void draw()
   u8g2.firstPage();
   do
   {
-    u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
-    u8g2.setCursor(0, 32);
-
-
     u8g2.setFont(u8g2_font_spleen5x8_mr);
-    u8g2.setCursor(0, 10);
-    u8g2.print("V: ");
+    u8g2.setCursor(128 - u8g2.getStrWidth("V:1.X"), 64);
+    u8g2.print("V:");
     u8g2.print(ota.version());
 
     u8g2.setCursor(0, 64);
-    u8g2.print("IP: ");
+    u8g2.print("IP:");
     u8g2.print(WiFi.localIP());
+
+    u8g2.setFont(u8g2_font_spleen12x24_mr); // Вывод текущего положения
+    u8g2.setCursor(40, 24);
+    u8g2.print(Fence.xPos);
+
+    if (Fence.inputPos.length()) // Отображать только, когда ввод не нулевой
+    {
+      u8g2.setFont(u8g2_font_spleen8x16_mr); // Вывод нового положения
+      u8g2.setCursor(64 - (Fence.inputPos.length() * 4) - u8g2.getStrWidth("->"), 24 + 5 + 16);
+      u8g2.print("->");
+      u8g2.print(Fence.inputPos);
+      u8g2.print("<-");
+    }
+
   } while (u8g2.nextPage());
 }
 
@@ -263,14 +273,21 @@ void keypadEvent(KeypadEvent key)
   {
   case PRESSED:
   {
-    Serial.println(key); // Дебаг для вывода нажатой кнопки
+    DebugPrint("Key pressed: ");
+    DebugPrintln(key); // Дебаг для вывода нажатой кнопки
+
     if (Fence.b_isHomed)
     {
       // isHomed == Ok-----------------------------------------
       if (key >= '0' && key <= '9')
       {
         if ((Fence.inputPos.length() <= 4))
+        {
+          if (key == '0' && !Fence.inputPos.length())
+            return;
+
           Fence.inputPos += key;
+        }
 
         if (Fence.inputPos.toInt() > 1500)
           Fence.inputPos = "";
@@ -348,10 +365,9 @@ void keypadEvent(KeypadEvent key)
     }
     case KPD_AST:
     {
-      void FluidNC_Updater();
+      // void FluidNC_Updater();
       break;
     }
-
     }
   }
 }

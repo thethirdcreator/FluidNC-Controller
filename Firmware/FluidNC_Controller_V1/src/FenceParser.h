@@ -2,15 +2,22 @@
 #define __FENCE_PARSER_H__
 
 #include <string.h>
+#include <StringUtils.h>
 #include "FluidNC_Ctrl.h"
 
 #define parserDebugMode
 
 #ifdef parserDebugMode
+
+#define DebugPrint(X) Serial.print(X)
+#define DebugPrintln(X) Serial.println(X)
+
 #define parserDebugPrintln(X)     \
   Serial.print("Parser debug: "); \
   Serial.println(X)
 #else
+#define DebugPrint(X) ;
+#define DebugPrintln(X) ;
 #define parserDebugPrintln(X) ;
 #endif
 
@@ -52,8 +59,8 @@ void fenceReceiveUart()
     {
       UART_RX_Data[ndx] = '\0'; // terminate the string
       ndx = 0;
-      Serial.print("Transitting: ");
-      Serial.println(UART_RX_Data);
+      DebugPrint("Transitting: ");
+      DebugPrintln(UART_RX_Data);
       parseData();
     }
   }
