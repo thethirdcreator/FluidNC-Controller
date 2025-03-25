@@ -205,17 +205,33 @@ void draw()
     u8g2.print("IP:");
     u8g2.print(WiFi.localIP());
 
-    u8g2.setFont(u8g2_font_spleen12x24_mr); // Вывод текущего положения
-    u8g2.setCursor(40, 24);
-    u8g2.print(Fence.xPos);
-
-    if (Fence.inputPos.length()) // Отображать только, когда ввод не нулевой
+    if (Fence.b_isHomed)
     {
-      u8g2.setFont(u8g2_font_spleen8x16_mr); // Вывод нового положения
-      u8g2.setCursor(64 - (Fence.inputPos.length() * 4) - u8g2.getStrWidth("->"), 24 + 5 + 16);
-      u8g2.print("->");
-      u8g2.print(Fence.inputPos);
-      u8g2.print("<-");
+      u8g2.setFont(u8g2_font_spleen12x24_mr); // Вывод текущего положения
+      u8g2.setCursor(40, 24);
+      u8g2.print(Fence.xPos);
+
+      if (Fence.inputPos.length()) // Отображать только, когда ввод не нулевой
+      {
+        u8g2.setFont(u8g2_font_spleen8x16_mr); // Вывод нового положения
+        u8g2.setCursor(64 - (Fence.inputPos.length() * 4) - u8g2.getStrWidth("->"), 24 + 5 + 16);
+        u8g2.print("->");
+        u8g2.print(Fence.inputPos);
+        u8g2.print("<-");
+      }
+    }
+    else
+    {
+      u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
+      // u8g2.setCursor(64 - (u8g2.getStrWidth("нужен хоуминг")), 24);
+      u8g2.setCursor(0, 24);
+      u8g2.print("нужен хоуминг");
+      // u8g2.setCursor(64 - (u8g2.getStrWidth("зажми F1")), 34);
+      u8g2.setCursor(0, 34);
+      u8g2.print("зажми F1");
+      // u8g2.setCursor(64 - (u8g2.getStrWidth("<- движение ->")), 54);
+      u8g2.setCursor(0, 54);
+      u8g2.print("<- движение ->");
     }
 
   } while (u8g2.nextPage());
@@ -265,8 +281,8 @@ void jog(int dir)
   Serial1.write(0x0A);
 }
 
+#define B_COORD_REL 1 // удалить
 #define B_COORD_ABS 0 // удалить
-#define B_COORD_REL 0 // удалить
 void keypadEvent(KeypadEvent key)
 {
   switch (keypad.getState())
@@ -340,14 +356,14 @@ void keypadEvent(KeypadEvent key)
       Serial1.print('\n');
       break;
     }
-    case KPD_DN:
+    case KPD_LT:
     { //<-
       jog(1);
       Serial.println("Jog left");
 
       break;
     }
-    case KPD_UP:
+    case KPD_RT:
     { //->
       jog(0);
       Serial.println("Jog rigth");
@@ -360,12 +376,12 @@ void keypadEvent(KeypadEvent key)
     }
     case KPD_F2:
     {
-      CNCPrint("$$\n");
+      CNCPrint("$$\n"); // Запросить настройки
       break;
     }
     case KPD_AST:
     {
-      // void FluidNC_Updater();
+      FluidNC_Updater();
       break;
     }
     }
