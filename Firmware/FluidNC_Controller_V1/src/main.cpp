@@ -258,7 +258,7 @@ void setPosition(int dir, int b_isRel)
 
   Serial1.print(Fence.inputPos);
 
-  Serial1.print("F5000");
+  Serial1.print("F2000");
   Serial1.write(0x0A);
 
   Fence.inputPos = "";
@@ -317,8 +317,7 @@ void keypadEvent(KeypadEvent key)
       switch (key)
       {
       case KPD_F1:
-        Fence.inputPos = "0"; // Set position to home
-        setPosition(0, B_COORD_ABS);
+
         break;
       case KPD_F2:
         Fence.changeStatus(FENCE_HOMED_OK);
@@ -350,10 +349,8 @@ void keypadEvent(KeypadEvent key)
     {
     case KPD_F1:
     {
-      Fence.changeStatus(FENCE_HOMED_OK);
-      Serial.println("Home");
-      Serial1.print("$H");
-      Serial1.print('\n');
+      Fence.inputPos = "0"; // Set position to home
+      setPosition(0, B_COORD_ABS);
       break;
     }
     case KPD_LT:
@@ -367,6 +364,7 @@ void keypadEvent(KeypadEvent key)
     { //->
       jog(0);
       Serial.println("Jog rigth");
+
       break;
     }
     case KPD_ESC:
@@ -376,7 +374,11 @@ void keypadEvent(KeypadEvent key)
     }
     case KPD_F2:
     {
-      CNCPrint("$$\n"); // Запросить настройки
+      Fence.changeStatus(FENCE_HOMED_OK);
+      Serial.println("Home");
+      Serial1.print("$H");
+      Serial1.print('\n');
+      // CNCPrint("$$\n"); // Запросить настройки
       break;
     }
     case KPD_AST:
