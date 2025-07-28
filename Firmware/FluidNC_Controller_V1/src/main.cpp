@@ -15,7 +15,7 @@
 #include "FenceKeypad.h"
 #include "FluidNC_Cmd.h"
 
-#include "FluidNC_Updater.h" // Ахуенный костыль. Переделать срочно
+#include "FluidNC_Updater.hpp" // Ахуенный костыль. Переделать срочно
 
 #include "FluidNC_CNC.h"
 
@@ -57,9 +57,6 @@ void ARDUINO_ISR_ATTR onTimer()
 }
 
 // дебажная хуйня
-
-char _ssid[16] = {"SSID here      "};
-char _password[16] = {"Password here  "};
 
 // char *constMEM hexDigit MEMMODE = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz%*)?@#$~-_ ";
 // char *constMEM hexNr[] MEMMODE = {hexDigit};
@@ -148,47 +145,22 @@ void setup()
 
   Serial.println("Started...");
   // delay(10000);
-  Serial.print("Trying to connect to ");
-  Serial.println(ssid);
-
-  Serial.println(WiFi.begin(ssid, password));
-
-  wl_status_t WiFiStatus;
-  Serial.println("Connecting to WiFi..");
-
-  do
-  {
-    delay(1000);
-    WiFiStatus = WiFi.status();
-    Serial.print(".");
-    Serial.println(WiFiStatus);
-  } while (!((WiFiStatus == WL_CONNECTED) || (WiFiStatus == WL_CONNECT_FAILED) || (WiFiStatus == WL_DISCONNECTED)));
-
-  if (WiFiStatus == WL_CONNECTED)
-  {
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-  else
-  {
-    Serial.println("");
-    Serial.println("Connection failed");
-  }
 
   Serial1.print("$J=");
+
+  // WiFi.begin("ebaloOff", "password");
 }
 
 void loop()
 {
 
+  WiFi_Check();
   draw(); // 12864 display only
   key = keypad.getKey();
   // keypad.getKey();
   // nav.poll();
   fenceReceiveUart();
-  delay(100);
+  // delay(10000);
 }
 
 void draw()
@@ -258,7 +230,7 @@ void setPosition(int dir, int b_isRel)
 
   Serial1.print(Fence.inputPos);
 
-  Serial1.print("F2000");
+  Serial1.print("F2800");
   Serial1.write(0x0A);
 
   Fence.inputPos = "";
