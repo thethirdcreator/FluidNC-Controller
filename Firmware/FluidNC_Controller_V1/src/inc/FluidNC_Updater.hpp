@@ -4,10 +4,11 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <AutoOTA.h>
-#include "WiFiList.h"
-#include "Debug.hpp"
+#include "inc/WiFiList.h"
+#include "inc/Debug.hpp"
 
 #define FluidNC_Controller_Ver "1.0"
+#define WiFi_Check_Freq 10000 // ms
 
 extern U8G2_ST7920_128X64_1_HW_SPI u8g2;
 extern AutoOTA ota;

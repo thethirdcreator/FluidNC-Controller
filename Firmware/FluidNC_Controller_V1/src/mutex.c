@@ -1,4 +1,4 @@
-#include "mutex.h"
+#include "inc/mutex.h"
 
 void _mt_lock(_mutex *mt)
 {

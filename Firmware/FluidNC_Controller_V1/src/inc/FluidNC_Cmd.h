@@ -7,5 +7,8 @@
 #define CMD_COORD_REL "G91"
 #define CMD_FEED_RATE "F"
 
+void setPosition(int dir, int b_isRel);
+void jog(int dir);
+
 
 #endif

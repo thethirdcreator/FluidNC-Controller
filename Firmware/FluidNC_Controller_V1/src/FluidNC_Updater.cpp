@@ -1,13 +1,12 @@
 
-#include "FluidNC_Updater.hpp"
+#include "inc/FluidNC_Updater.hpp"
 
-char ssid[16] = {"SSID here      "};
-char password[16] = {"Password here  "};
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller-Updates");
 
 void ARDUINO_ISR_ATTR WiFiHandler()
 {
+
 }
 
 wl_status_t WiFiStatus;
@@ -15,7 +14,7 @@ uint8_t wifi_idx = 0;
 uint32_t prevMs = 0;
 void WiFi_Check()
 {
-    if (WiFi.status() != WL_CONNECTED && (millis() - prevMs >= 30000))
+    if (WiFi.status() != WL_CONNECTED && (millis() - prevMs >= WiFi_Check_Freq))
     {
         WiFiStatus = WiFi.status();
         _LogPrint("\r\nPrev status = ");
@@ -107,37 +106,5 @@ void FluidNC_Updater()
             } while (u8g2.nextPage());
             delay(1000);
         }
-    }
-}
-
-void FluidNC_WiFI_Connect()
-{
-    _LogPrint("Trying to connect to ");
-    _LogPrintLn(ssid);
-
-    _LogPrintLn(WiFi.begin(ssid, password));
-
-    wl_status_t WiFiStatus;
-    _LogPrintLn("Connecting to WiFi..");
-
-    do
-    {
-        delay(1000);
-        WiFiStatus = WiFi.status();
-        Serial.print(".");
-        Serial.println(WiFiStatus);
-    } while (!((WiFiStatus == WL_CONNECTED) || (WiFiStatus == WL_CONNECT_FAILED) || (WiFiStatus == WL_DISCONNECTED)));
-
-    if (WiFiStatus == WL_CONNECTED)
-    {
-        Serial.println("");
-        Serial.println("WiFi connected");
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
-    }
-    else
-    {
-        Serial.println("");
-        Serial.println("Connection failed");
     }
 }

@@ -4,26 +4,11 @@
 #include <string.h>
 #include <StringUtils.h>
 #include "FluidNC_Ctrl.h"
+#include "Debug.hpp"
 
-#define parserDebugMode
+#define UART_RX_BUFF_SIZE 100
 
-#ifdef parserDebugMode
-
-#define DebugPrint(X) Serial.print(X)
-#define DebugPrintln(X) Serial.println(X)
-
-#define parserDebugPrintln(X)     \
-  Serial.print("Parser debug: "); \
-  Serial.println(X)
-#else
-#define DebugPrint(X) ;
-#define DebugPrintln(X) ;
-#define parserDebugPrintln(X) ;
-#endif
-
-#define numChars 100
-
-char UART_RX_Data[numChars];
+char UART_RX_Data[UART_RX_BUFF_SIZE];
 
 boolean newData = false;
 
@@ -50,17 +35,17 @@ void fenceReceiveUart()
     {
       UART_RX_Data[ndx] = rc;
       ndx++;
-      if (ndx >= numChars)
+      if (ndx >= UART_RX_BUFF_SIZE)
       {
-        ndx = numChars - 1;
+        ndx = UART_RX_BUFF_SIZE - 1;
       }
     }
     else
     {
       UART_RX_Data[ndx] = '\0'; // terminate the string
       ndx = 0;
-      DebugPrint("Transitting: ");
-      DebugPrintln(UART_RX_Data);
+     _DebugPrint("Transitting: ");
+      _DebugPrintLn(UART_RX_Data);
       parseData();
     }
   }
@@ -83,7 +68,7 @@ void parseData()
   default:
   {
     Serial.print("Line rejected: ");
-    parserDebugPrintln(UART_RX_Data);
+    _DebugPrintLn(UART_RX_Data);
     flushUart();
     return;
   }
@@ -94,6 +79,7 @@ void parseMsg()
 {
   Serial.println("This is a message");
 }
+
 void parseCmd()
 {
   Serial.println("Parsing setting:");

@@ -1,5 +1,5 @@
-#ifndef __FluidNC_CNC_H__
-#define __FluidNC_CNC_H__
+#ifndef __FluidNC_CNC_HPP__
+#define __FluidNC_CNC_HPP__
 
 #include <stdint.h>
 #include "FluidNC_Parser.h"
@@ -13,7 +13,8 @@ enum FluidBool : uint8_t
 enum FluidStatus : int8_t
 {
   FLUID_ERR_UNDEFINED = -127,
-  FLUID_IDLE = 0,
+  FLUID_ERR = 0,
+  FLUID_IDLE,
   FLUID_OK
 };
 
@@ -43,7 +44,7 @@ private:
   //=========================
   // This variables are acquired by processing settings and through user input
   //=========================
-  float maxPos, minPos;
+  int32_t maxPos, minPos;
   float realPos, localPos;
   float localOffset;
   uint32_t feedRate;
@@ -56,8 +57,8 @@ private:
   FluidHomingStatus setHomingStatus(FluidHomingStatus);
 
 public:
-  FluidStatus axisDoHomeing();
-  FluidHomingStatus getHomeingStatus();
+  FluidStatus axisDoHoming();
+  FluidHomingStatus getHomingStatus();
 
   float getRealPos();  // Отправляет действительное положение
   float getLocalPos(); // Отправляет действительное положение с поправкой на сдвиг (зубцов диска)5
@@ -68,10 +69,11 @@ public:
 class FluidNC_CNC_Class
 {
 private:
+public:
   FluidNC_CNC_Axis_Class x, y, z;
 
-public:
   void begin();
+  void reset();
 };
 
 #endif

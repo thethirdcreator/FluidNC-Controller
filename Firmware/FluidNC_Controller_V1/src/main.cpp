@@ -9,15 +9,17 @@
 // #include <menuIO/keypadIn.h>
 // #include <menuIO/serialIn.h>
 
-#include "WiFiList.h"
-#include "FluidNC_Ctrl.h"
-#include "FenceParser.h"
-#include "FenceKeypad.h"
-#include "FluidNC_Cmd.h"
+#include "inc/WiFiList.h"
+#include "inc/FluidNC_Ctrl.h"
+#include "inc/FenceParser.h"
+#include "inc/FenceKeypad.h"
+#include "inc/FluidNC_Cmd.h"
 
-#include "FluidNC_Updater.hpp" // Ахуенный костыль. Переделать срочно
+#include "inc/FluidNC_Updater.hpp"
 
-#include "FluidNC_CNC.h"
+#include "inc/FluidNC_CNC.h"
+#include "inc/global.h"
+#include "inc/Debug.hpp"
 
 //=========================
 // Firmware version
@@ -26,10 +28,6 @@
 //=========================
 // Defines
 //=========================
-#define DebugPrint(X) Serial.print(X)
-#define DebugPrintln(X) Serial.println(X)
-#define CNCPrint(X) Serial1.print(X)
-#define CNCPrintln(X) Serial1.println(X)
 
 //=========================
 // Objects
@@ -38,14 +36,14 @@
 //=========================
 // Function prototypes
 //=========================
-void keypadEvent(KeypadEvent key);
+// draw должен стать указателем на функцию отображения одного из экранов. Либо обработка нужного экрана будет идти внутри него
 void draw();
+// так же и keypadEvent - в зависимости от экрана должен менятся контекст
+void keypadEvent(KeypadEvent key);
+
 void setPosition(int dir, int b_isRel);
 void jog(int dir);
 volatile char key;
-//=========================
-// Function prototypes end
-//=========================
 
 hw_timer_t *BaseTimer = NULL;
 volatile uint64_t isrCounter = 0;
@@ -56,41 +54,6 @@ void ARDUINO_ISR_ATTR onTimer()
   isrCounter++;
 }
 
-// дебажная хуйня
-
-// char *constMEM hexDigit MEMMODE = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz%*)?@#$~-_ ";
-// char *constMEM hexNr[] MEMMODE = {hexDigit};
-
-// result resetAllNahui()
-// {
-//   ESP.restart();
-//   return proceed;
-// }
-
-// int chooseTest = 1;
-// CHOOSE(chooseTest, chooseMenu, "Choose", doNothing, noEvent, noStyle,
-//        VALUE("First", 1, doNothing, noEvent),
-//        VALUE("Second", 2, doNothing, noEvent),
-//        VALUE("Third", 3, doNothing, noEvent),
-//        VALUE("EbalRot", 4, doNothing, noEvent),
-//        VALUE("HuiV04ko", 5, doNothing, noEvent),
-//        VALUE("Suka", 6, doNothing, noEvent),
-//        VALUE("Reset", 7, resetAllNahui, anyEvent));
-
-// MENU(wifiMenu, "WiFi Settings", doNothing, noEvent, wrapStyle,
-//      EDIT("SSID: ", _ssid, hexNr, doNothing, noEvent, noStyle),
-//      EDIT("Password: ", _password, hexNr, doNothing, noEvent, noStyle),
-//      SUBMENU(chooseMenu),
-//      EXIT("<Back"));
-
-// MENU(mainMenu, "Main menu", doNothing, noEvent, wrapStyle,
-//      OP("Ebalaika", doNothing, noEvent),
-//      OP("Ebalaika2", doNothing, noEvent),
-//      SUBMENU(wifiMenu),
-//      EXIT("<Back"));
-
-#define MAX_DEPTH 3
-
 #define fontName u8g2_font_7x13_mf
 #define fontX 7
 #define fontY 16
@@ -98,33 +61,6 @@ void ARDUINO_ISR_ATTR onTimer()
 #define offsetY 3
 #define U8_Width 128
 #define U8_Height 64
-// #define USE_HWI2C
-
-// const colorDef<uint8_t> colors[6] MEMMODE = {
-//     {{0, 0}, {0, 1, 1}}, // bgColor
-//     {{1, 1}, {1, 0, 0}}, // fgColor
-//     {{1, 1}, {1, 0, 0}}, // valColor
-//     {{1, 1}, {1, 0, 0}}, // unitColor
-//     {{0, 1}, {0, 0, 1}}, // cursorColor
-//     {{1, 1}, {1, 0, 0}}, // titleColor
-// };
-
-// MENU_OUTPUTS(out, MAX_DEPTH,
-//              U8G2_OUT(u8g2, colors, fontX, fontY, offsetX, offsetY, {0, 0, U8_Width / fontX, U8_Height / fontY}),
-//              SERIAL_OUT(Serial));
-
-// MENU_OUTPUTS(out, MAX_DEPTH,
-//              SERIAL_OUT(Serial),
-//              NONE);
-
-// keypadIn myKpad(keypad);
-// serialIn mySerialIn(Serial);
-// MENU_INPUTS(myInputs, &myKpad, &mySerialIn);
-// MENU_INPUTS(myInputs, &mySerialIn, NONE);
-
-// NAVROOT(nav, mainMenu, MAX_DEPTH, myInputs, out);
-
-// дебажная хуйня end
 
 void setup()
 {
@@ -135,32 +71,21 @@ void setup()
   u8g2.setBusClock(400000);
   u8g2.begin();
   u8g2.enableUTF8Print();
-  // u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
+  u8g2.setFont(u8g2_font_haxrcorp4089_t_cyrillic);
 
   keypad.addEventListener(keypadEvent);
 
-  // BaseTimer = timerBegin(1000, , true);
-  // timerAttachInterrupt(BaseTimer, &onTimer);
-  // timerAlarmEnable(BaseTimer, 100, true, 0);
-
-  Serial.println("Started...");
-  // delay(10000);
+  _DebugPrintLn("Started...");
 
   Serial1.print("$J=");
-
-  // WiFi.begin("ebaloOff", "password");
 }
 
 void loop()
 {
-
   WiFi_Check();
   draw(); // 12864 display only
   key = keypad.getKey();
-  // keypad.getKey();
-  // nav.poll();
   fenceReceiveUart();
-  // delay(10000);
 }
 
 void draw()
@@ -168,7 +93,7 @@ void draw()
   u8g2.firstPage();
   do
   {
-    u8g2.setFont(u8g2_font_spleen5x8_mr);
+
     u8g2.setCursor(128 - u8g2.getStrWidth("V:1.X"), 64);
     u8g2.print("V:");
     u8g2.print(ota.version());
@@ -179,13 +104,13 @@ void draw()
 
     if (Fence.b_isHomed)
     {
-      u8g2.setFont(u8g2_font_spleen12x24_mr); // Вывод текущего положения
+      // Вывод текущего положения
       u8g2.setCursor(40, 24);
       u8g2.print(Fence.xPos);
 
       if (Fence.inputPos.length()) // Отображать только, когда ввод не нулевой
       {
-        u8g2.setFont(u8g2_font_spleen8x16_mr); // Вывод нового положения
+        // Вывод нового положения
         u8g2.setCursor(64 - (Fence.inputPos.length() * 4) - u8g2.getStrWidth("->"), 24 + 5 + 16);
         u8g2.print("->");
         u8g2.print(Fence.inputPos);
@@ -194,14 +119,10 @@ void draw()
     }
     else
     {
-      u8g2.setFont(u8g2_font_unifont_t_cyrillic); // Set Russian font
-      // u8g2.setCursor(64 - (u8g2.getStrWidth("нужен хоуминг")), 24);
       u8g2.setCursor(0, 24);
       u8g2.print("нужен хоуминг");
-      // u8g2.setCursor(64 - (u8g2.getStrWidth("зажми F1")), 34);
       u8g2.setCursor(0, 34);
       u8g2.print("зажми F1");
-      // u8g2.setCursor(64 - (u8g2.getStrWidth("<- движение ->")), 54);
       u8g2.setCursor(0, 54);
       u8g2.print("<- движение ->");
     }
@@ -209,60 +130,19 @@ void draw()
   } while (u8g2.nextPage());
 }
 
-void setPosition(int dir, int b_isRel)
-{
 
-  if (Fence.inputPos.length() == 0)
-    return;
-
-  Serial1.print("$J=");
-  Serial1.print("G21");
-
-  if (b_isRel)
-    Serial1.print("G91");
-  else
-    Serial1.print("G53");
-
-  if (dir)
-    Serial1.print("X-");
-  else
-    Serial1.print("X");
-
-  Serial1.print(Fence.inputPos);
-
-  Serial1.print("F2800");
-  Serial1.write(0x0A);
-
-  Fence.inputPos = "";
-}
-
-void jog(int dir)
-{
-  Serial1.print("$J=");
-  Serial1.print("G21");
-  Serial1.print("G91");
-
-  if (dir)
-    Serial1.print("X-");
-  else
-    Serial1.print("X");
-
-  Serial1.print("10");
-
-  Serial1.print("F1000");
-  Serial1.write(0x0A);
-}
 
 #define B_COORD_REL 1 // удалить
 #define B_COORD_ABS 0 // удалить
+
 void keypadEvent(KeypadEvent key)
 {
   switch (keypad.getState())
   {
   case PRESSED:
   {
-    DebugPrint("Key pressed: ");
-    DebugPrintln(key); // Дебаг для вывода нажатой кнопки
+    _DebugPrint("Key pressed: ");
+    _DebugPrintLn(key); // Дебаг для вывода нажатой кнопки
 
     if (Fence.b_isHomed)
     {
@@ -298,13 +178,13 @@ void keypadEvent(KeypadEvent key)
 
         break;
       case KPD_ENT: // OK
-        setPosition(0, B_COORD_ABS);
+        // setPosition(0, B_COORD_ABS);
         break;
       case KPD_DN: //<-
-        setPosition(1, B_COORD_REL);
+        // setPosition(1, B_COORD_REL);
         break;
       case KPD_UP: //->
-        setPosition(0, B_COORD_REL);
+        // setPosition(0, B_COORD_REL);
         break;
       default:
         break;
@@ -322,19 +202,19 @@ void keypadEvent(KeypadEvent key)
     case KPD_F1:
     {
       Fence.inputPos = "0"; // Set position to home
-      setPosition(0, B_COORD_ABS);
+      // setPosition(0, B_COORD_ABS);
       break;
     }
     case KPD_LT:
     { //<-
-      jog(1);
+      // jog(1);
       Serial.println("Jog left");
 
       break;
     }
     case KPD_RT:
     { //->
-      jog(0);
+      // jog(0);
       Serial.println("Jog rigth");
 
       break;
