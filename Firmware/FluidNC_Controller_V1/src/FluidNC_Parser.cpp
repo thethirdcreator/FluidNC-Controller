@@ -1,12 +1,17 @@
 #include "inc/FluidNC_Parser.hpp"
 
+FluidNC_Parser_Class FluidNC_Parser;
+
+void FluidNC_Parser_Class::update()
+{
+    
+}
+
 void FluidNC_Parser_Class::reset()
 {
-    memset(this->RX_BUFF, 0, sizeof(this->RX_BUFF));
-    this->buff_ndx = 0;
-    this->state = ST_NONE;
-
-    this->update = &FluidNC_Parser_Class::receiveChar;
+    memset(RX_BUFF, 0, sizeof(RX_BUFF));
+    buff_ndx = 0;
+    state = ST_NONE;
 }
 
 void FluidNC_Parser_Class::receiveChar()
@@ -22,6 +27,7 @@ void FluidNC_Parser_Class::receiveChar()
             this->RX_BUFF[this->buff_ndx] = '\0'; // terminate the string
             // Заменить на обработчик парсинга
             // this->update = parseData;
+            state = ST_PREPASS;
             prePass();
         }
         else
@@ -45,22 +51,21 @@ void FluidNC_Parser_Class::receiveChar()
 // определяет тип сообщения
 void FluidNC_Parser_Class::prePass()
 {
-    switch (this->RX_BUFF[0])
+    switch (RX_BUFF[0])
     {
     case '<':
-        this->update = &FluidNC_Parser_Class::parseStatus;
+        state = ST_PARSE_STATUS;
         break;
     case '$':
-        this->update = &FluidNC_Parser_Class::parseCmd;
+        state = ST_PARSE_CMD;
         break;
     case '[':
-        this->update = &FluidNC_Parser_Class::parseMsg;
+        state = ST_PARSE_MSG;
         break;
     default:
     {
         _DebugPrint("Line rejected: ");
-        _DebugPrintLn(this->RX_BUFF);
-        // this->reset();
+        _DebugPrintLn(RX_BUFF);
         reset();
         return;
     }
@@ -75,7 +80,7 @@ void FluidNC_Parser_Class::parseMsg()
 void FluidNC_Parser_Class::parseCmd()
 {
     _DebugPrintLn("Parsing setting:");
-    switch (this->RX_BUFF[1])
+    switch (RX_BUFF[1])
     {
     }
 }
@@ -87,7 +92,7 @@ void FluidNC_Parser_Class::parseStatus()
     char *pch;
     memset(status, '\0', sizeof(status));
 
-    switch (this->RX_BUFF[1])
+    switch (RX_BUFF[1])
     {
     case 'I':
     { // Idle
@@ -116,8 +121,8 @@ void FluidNC_Parser_Class::parseStatus()
     }
     }
 
-    pch = strtok(this->RX_BUFF, " <>|:,");      // Status
-    pch = strtok(NULL, " <>|:,");              // MPos
+    pch = strtok(RX_BUFF, " <>|:,");      // Status
+    pch = strtok(NULL, " <>|:,");               // MPos
     CNC.x.setPos(atof(strtok(NULL, " <>|:,"))); // X
     CNC.y.setPos(atof(strtok(NULL, " <>|:,"))); // Y
     CNC.z.setPos(atof(strtok(NULL, " <>|:,"))); // Z

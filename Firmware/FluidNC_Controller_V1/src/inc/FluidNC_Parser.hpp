@@ -14,6 +14,7 @@
 enum FluidNC_Parser_State_t
 {
     ST_NONE = 0,
+    ST_PREPASS,
     ST_PARSE_STATUS,
     ST_PARSE_DATA,
     ST_PARSE_MSG,
@@ -37,14 +38,16 @@ private:
 public:
     void reset();
     // https://isocpp.org/wiki/faq/pointers-to-members
-    void (FluidNC_Parser_Class::*update)(); // Handler указывающий на текущую операцию
+    void update(); // Handler указывающий на текущую операцию
 
     FluidNC_Parser_Class()
     {
-        update = &FluidNC_Parser_Class::prePass;
+        state = ST_NONE;
         reset();
     }
 
-} FluidNC_Parser;
+};
+
+extern FluidNC_Parser_Class FluidNC_Parser;
 
 #endif
