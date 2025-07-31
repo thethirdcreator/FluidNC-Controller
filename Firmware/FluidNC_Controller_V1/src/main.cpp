@@ -17,7 +17,8 @@
 
 #include "inc/FluidNC_Updater.hpp"
 
-#include "inc/FluidNC_CNC.h"
+#include "inc/FluidNC_CNC.hpp"
+#include "inc/FluidNC_Parser.hpp"
 #include "inc/global.h"
 #include "inc/Debug.hpp"
 
@@ -75,9 +76,9 @@ void setup()
 
   keypad.addEventListener(keypadEvent);
 
-  _DebugPrintLn("Started...");
+  _DebugPrintLn("Sender has started!");
 
-  Serial1.print("$J=");
+  CNC.reset();
 }
 
 void loop()
@@ -85,7 +86,7 @@ void loop()
   WiFi_Check();
   draw(); // 12864 display only
   key = keypad.getKey();
-  fenceReceiveUart();
+  FluidNC_Parser.FluidNC_Parser_Class::update();
 }
 
 void draw()

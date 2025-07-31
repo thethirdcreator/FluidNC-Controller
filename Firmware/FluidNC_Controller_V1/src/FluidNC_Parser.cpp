@@ -1,119 +1,124 @@
-#include "inc/FluidNC_Parser.h"
+#include "inc/FluidNC_Parser.hpp"
 
-FluidNC_Parser_Class::parser_status_t FluidNC_Parser_Class::begin()
+void FluidNC_Parser_Class::reset()
 {
-  return PARSER_IDLE;
+    memset(this->RX_BUFF, 0, sizeof(this->RX_BUFF));
+    this->buff_ndx = 0;
+    this->state = ST_NONE;
+
+    this->update = &FluidNC_Parser_Class::receiveChar;
 }
 
-FluidNC_Parser_Class::parser_status_t FluidNC_Parser_Class::poll()
+void FluidNC_Parser_Class::receiveChar()
 {
-  while (_Port.available() > 0 && this->status == PARSER_IDLE)
-  {
-    this->rxChar = _Port.read();
+    char c;
 
-    if (rxChar != _EndMarker)
+    while (CNC_PORT.available() > 0)
     {
-      this->rxBuffer[this->rxNdx] = this->rxChar;
-      this->rxNdx++;
-      if (this->rxNdx >= _MaxRxChars)
-      {
-        this->rxNdx = _MaxRxChars - 1;
-      }
+        c = CNC_PORT.read();
+
+        if (c == END_MARKER)
+        {
+            this->RX_BUFF[this->buff_ndx] = '\0'; // terminate the string
+            // Заменить на обработчик парсинга
+            // this->update = parseData;
+            prePass();
+        }
+        else
+        {
+            this->RX_BUFF[this->buff_ndx++] = c;
+            // очистка буфера, сброс счетчика буфера, сброс состояния
+            // this->reset();
+            reset();
+            // Можно делать и так:
+            // Перезаписываем последний символ, пока не получим конец сообщения
+            // Но в любом из случаев надо добавить сброс по времени ожидания
+
+            // if (this->buff_ndx >= UART_RX_BUFF_SIZE)
+            // {
+            //   this->buff_ndx = UART_RX_BUFF_SIZE - 1;
+            // }
+        }
     }
-    else
-    {
-      this->rxBuffer[this->rxNdx] = '\0'; // terminate the string
-      this->rxNdx = 0;
-
-      _parserDebugPrint("Transit string: ");
-      _parserDebugPrintln((char *)this->rxBuffer);
-
-      this->status = PARSER_RECEIVED;
-
-      this->parse();
-    }
-  }
-
-  return PARSER_IDLE;
 }
 
-FluidNC_Parser_Class::parser_status_t FluidNC_Parser_Class::parse()
+// определяет тип сообщения
+void FluidNC_Parser_Class::prePass()
 {
-  switch (this->status)
-  {
-    // PARSER_RECEIVED start
-  case PARSER_RECEIVED:
-  {
-    switch (this->rxBuffer[this->ndx])
+    switch (this->RX_BUFF[0])
     {
     case '<':
-      this->status = PARSER_STATUS;
-      break;
+        this->update = &FluidNC_Parser_Class::parseStatus;
+        break;
     case '$':
-      this->status = PARSER_COMMAND;
-      break;
+        this->update = &FluidNC_Parser_Class::parseCmd;
+        break;
     case '[':
-      this->status = PARSER_MESSAGE;
-      break;
+        this->update = &FluidNC_Parser_Class::parseMsg;
+        break;
     default:
     {
-      _parserDebugPrint("Parsing error. Line rejected: ");
-      _parserDebugPrintln((char *)this->rxBuffer);
-
-      this->flush(); // перенести в конец всех итераций парсинга
-      this->status = PARSER_REJECTED;
+        _DebugPrint("Line rejected: ");
+        _DebugPrintLn(this->RX_BUFF);
+        // this->reset();
+        reset();
+        return;
     }
-      ndx++;
-      this->parse();
     }
-    break;
-  } // PARSER_RECEIVED end
-
-    // PARSER_STATUS start
-  case PARSER_STATUS:
-  {
-
-    break;
-  } // PARSER_STATUS end
-
-    // PARSER_COMMAND start
-  case PARSER_COMMAND:
-  {
-
-    break;
-  } // PARSER_COMMAND end
-
-  // PARSER_MESSAGE start
-  case PARSER_MESSAGE:
-  {
-
-    break;
-  } // PARSER_MESSAGE end
-
-  // PARSER_REJECTED start
-  case PARSER_REJECTED:
-  {
-    this->flush();
-    break;
-  } // PARSER_REJECTED end
-  default:
-  {
-    _parserDebugPrint("Parsing error critical!\n Trying to show buffer:");
-    _parserDebugPrintln((char *)this->rxBuffer);
-    this->flush();
-    return PARSER_ERR_UNDEFINED;
-  }
-  }
-
-  return PARSER_IDLE;
 }
 
-FluidNC_Parser_Class::parser_status_t FluidNC_Parser_Class::flush()
+void FluidNC_Parser_Class::parseMsg()
 {
-  memset(this->rxBuffer, '\0', sizeof(this->rxBuffer));
-  this->rxNdx = 0;
-  this->ndx = 0;
-  this->status = PARSER_IDLE;
+    _DebugPrintLn("This is a message");
+}
 
-  return PARSER_IDLE;
+void FluidNC_Parser_Class::parseCmd()
+{
+    _DebugPrintLn("Parsing setting:");
+    switch (this->RX_BUFF[1])
+    {
+    }
+}
+
+void FluidNC_Parser_Class::parseStatus()
+{
+    _DebugPrintLn("This is a status");
+    char status[10];
+    char *pch;
+    memset(status, '\0', sizeof(status));
+
+    switch (this->RX_BUFF[1])
+    {
+    case 'I':
+    { // Idle
+        _DebugPrintLn("Idle");
+        CNC.changeStatus(FLUID_IDLE);
+        break;
+    }
+    case 'H':
+    { // Home
+        _DebugPrintLn("Home");
+        CNC.changeStatus(FLUID_HOMING);
+        break;
+    }
+    case 'A':
+    { // Alarm
+        _DebugPrintLn("Alarm");
+        CNC.changeStatus(FLUID_ALARM);
+        break;
+    }
+    case 'J': // Jog
+    case 'M':
+    { // Move
+        _DebugPrintLn("Jog");
+        CNC.changeStatus(FLUID_JOG);
+        break;
+    }
+    }
+
+    pch = strtok(this->RX_BUFF, " <>|:,");      // Status
+    pch = strtok(NULL, " <>|:,");              // MPos
+    CNC.x.setPos(atof(strtok(NULL, " <>|:,"))); // X
+    CNC.y.setPos(atof(strtok(NULL, " <>|:,"))); // Y
+    CNC.z.setPos(atof(strtok(NULL, " <>|:,"))); // Z
 }
