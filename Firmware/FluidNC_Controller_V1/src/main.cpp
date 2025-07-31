@@ -64,27 +64,28 @@ volatile char key;
 void setup()
 {
 
-  Serial.begin(115200);                      // Debug serial through USB-C
-  Serial1.begin(115200, SERIAL_8N1, 39, 40); // Main serial to communicate with Fence //Serial1.begin(BAUD, SERIAL_8N1, RX_GPIO, TX_GPIO);
+    Serial.begin(115200);                      // Debug serial through USB-C
+    Serial1.begin(115200, SERIAL_8N1, 39, 40); // Main serial to communicate with Fence //Serial1.begin(BAUD, SERIAL_8N1, RX_GPIO, TX_GPIO);
 
-  u8g2.setBusClock(400000);
-  u8g2.begin();
-  u8g2.enableUTF8Print();
-  u8g2.setFont(u8g2_font_haxrcorp4089_t_cyrillic);
+    u8g2.setBusClock(400000);
+    u8g2.begin();
+    u8g2.enableUTF8Print();
+    u8g2.setFont(u8g2_font_haxrcorp4089_t_cyrillic);
 
-//   keypad.addEventListener(keypadEvent);
+    //   keypad.addEventListener(keypadEvent);
 
-  _DebugPrintLn("Sender has started!");
+    _DebugPrintLn("Sender has started!");
 
-  CNC.reset();
+    FluidNC_Parser.reset();
+    CNC.reset();
 }
 
 void loop()
 {
-  WiFi_Check();
-//   draw(); // 12864 display only
-//   key = keypad.getKey();
-  FluidNC_Parser.update();
+    WiFi_Check();
+    FluidNC_Parser.update();
+    // draw();
+    //   key = keypad.getKey();
 }
 
 // void draw()
@@ -128,8 +129,6 @@ void loop()
 
 //   } while (u8g2.nextPage());
 // }
-
-
 
 // #define B_COORD_REL 1 // удалить
 // #define B_COORD_ABS 0 // удалить

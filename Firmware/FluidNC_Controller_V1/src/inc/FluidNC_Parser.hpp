@@ -27,7 +27,6 @@ private:
     FluidNC_Parser_State_t state;
     char RX_BUFF[UART_RX_BUFF_SIZE];
     ptrdiff_t buff_ndx;
-    void flushBuff();
     void receiveChar();
     void parseStatus();
     void parseData();
