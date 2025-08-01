@@ -21,3 +21,8 @@ void FluidNC_CNC_Class::changeStatus(FluidStatus status)
 {
     this->status = status;
 }
+
+FluidStatus FluidNC_CNC_Class::getStatus()
+{
+    return status;
+}

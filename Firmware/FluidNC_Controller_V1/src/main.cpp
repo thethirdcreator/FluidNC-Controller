@@ -18,6 +18,7 @@
 #include "inc/FluidNC_CNC.hpp"
 #include "inc/FluidNC_Parser.hpp"
 #include "inc/global.h"
+#include "inc/FluidSender_UI.hpp"
 #include "inc/Debug.hpp"
 
 //=========================
@@ -84,7 +85,7 @@ void loop()
 {
     WiFi_Check();
     FluidNC_Parser.update();
-    // draw();
+    UI.draw();
     //   key = keypad.getKey();
 }
 

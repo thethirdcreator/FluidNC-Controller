@@ -53,15 +53,12 @@ void FluidNC_Parser_Class::prePass()
     switch (RX_BUFF[0])
     {
     case '<':
-        state = ST_PARSE_STATUS;
         parseStatus();
         break;
     case '$':
-        state = ST_PARSE_CMD;
         parseCmd();
         break;
     case '[':
-        state = ST_PARSE_MSG;
         parseMsg();
         break;
     default:
@@ -77,12 +74,14 @@ void FluidNC_Parser_Class::prePass()
 
 void FluidNC_Parser_Class::parseMsg()
 {
+    state = ST_PARSE_MSG;
     _DebugPrintLn("This is a message");
     reset();
 }
 
 void FluidNC_Parser_Class::parseCmd()
 {
+    state = ST_PARSE_CMD;
     _DebugPrintLn("Parsing setting:");
     switch (RX_BUFF[1])
     {
@@ -92,12 +91,14 @@ void FluidNC_Parser_Class::parseCmd()
 
 void FluidNC_Parser_Class::parseData()
 {
+    state = ST_PARSE_DATA;
     _DebugPrintLn("This is a data");
     reset();
 }
 
 void FluidNC_Parser_Class::parseStatus()
 {
+    state = ST_PARSE_STATUS;
     _DebugPrintLn("This is a status");
     char status[10];
     char *pch;
