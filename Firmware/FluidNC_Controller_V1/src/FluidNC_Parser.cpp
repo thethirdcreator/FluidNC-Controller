@@ -4,37 +4,14 @@ FluidNC_Parser_Class FluidNC_Parser;
 
 void FluidNC_Parser_Class::update()
 {
-    switch (state)
-    {
-    case ST_NONE:
-        this->receiveChar();
-        break;
-    case ST_PREPASS:
-        this->prePass();
-        break;
-    case ST_PARSE_CMD:
-        this->parseCmd();
-        break;
-    case ST_PARSE_DATA:
-        this->parseData();
-        break;
-    case ST_PARSE_STATUS:
-        this->parseStatus();
-        break;
-    default:
-        _DebugPrintLn("Parser default state occured");
-        this->reset();
-        break;
-    }
-    // prePass();
-    // _DebugPrintLn("OK");
+    receiveChar();
 }
 
 void FluidNC_Parser_Class::reset()
 {
-    memset(this->RX_BUFF, 0, sizeof(this->RX_BUFF));
-    this->buff_ndx = 0;
-    this->state = ST_NONE;
+    memset(RX_BUFF, 0, sizeof(RX_BUFF));
+    buff_ndx = 0;
+    state = ST_NONE;
 }
 
 void FluidNC_Parser_Class::receiveChar()
@@ -47,20 +24,17 @@ void FluidNC_Parser_Class::receiveChar()
 
         if (c == END_MARKER)
         {
-            this->RX_BUFF[this->buff_ndx] = '\0'; // terminate the string
+            RX_BUFF[buff_ndx] = '\0'; // terminate the string
             // Заменить на обработчик парсинга
-            // this->update = parseData;
-            this->state = ST_PREPASS;
-            // prePass();
-            this->update();
+            prePass();
         }
         else
         {
-            this->RX_BUFF[this->buff_ndx++] = c;
+            RX_BUFF[buff_ndx++] = c;
             // очистка буфера, сброс счетчика буфера, сброс состояния
 
-            if (this->buff_ndx >= UART_RX_BUFF_SIZE)
-                this->reset();
+            if (buff_ndx >= UART_RX_BUFF_SIZE)
+                reset();
             // Можно делать и так:
             // Перезаписываем последний символ, пока не получим конец сообщения
             // Но в любом из случаев надо добавить сброс по времени ожидания
@@ -76,44 +50,50 @@ void FluidNC_Parser_Class::receiveChar()
 // определяет тип сообщения
 void FluidNC_Parser_Class::prePass()
 {
-    switch (this->RX_BUFF[0])
+    switch (RX_BUFF[0])
     {
     case '<':
-        this->state = ST_PARSE_STATUS;
+        state = ST_PARSE_STATUS;
+        parseStatus();
         break;
     case '$':
-        this->state = ST_PARSE_CMD;
+        state = ST_PARSE_CMD;
+        parseCmd();
         break;
     case '[':
-        this->state = ST_PARSE_MSG;
+        state = ST_PARSE_MSG;
+        parseMsg();
         break;
     default:
     {
         _DebugPrint("Line rejected: ");
-        _DebugPrintLn(this->RX_BUFF);
-        this->reset();
+        _DebugPrintLn(RX_BUFF);
+        reset();
         return;
     }
     }
-    this->update();
+    // this->update();
 }
 
 void FluidNC_Parser_Class::parseMsg()
 {
     _DebugPrintLn("This is a message");
+    reset();
 }
 
 void FluidNC_Parser_Class::parseCmd()
 {
     _DebugPrintLn("Parsing setting:");
-    switch (this->RX_BUFF[1])
+    switch (RX_BUFF[1])
     {
     }
+    reset();
 }
 
 void FluidNC_Parser_Class::parseData()
 {
     _DebugPrintLn("This is a data");
+    reset();
 }
 
 void FluidNC_Parser_Class::parseStatus()
@@ -157,4 +137,5 @@ void FluidNC_Parser_Class::parseStatus()
     CNC.x.setPos(atof(strtok(NULL, " <>|:,"))); // X
     CNC.y.setPos(atof(strtok(NULL, " <>|:,"))); // Y
     CNC.z.setPos(atof(strtok(NULL, " <>|:,"))); // Z
+    reset();
 }
