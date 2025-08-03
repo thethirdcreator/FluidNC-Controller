@@ -10,7 +10,6 @@
 #define FluidNC_Controller_Ver "1.0"
 #define WiFi_Check_Freq 10000 // ms
 
-extern U8G2_ST7920_128X64_1_HW_SPI u8g2;
 extern AutoOTA ota;
 
 void WiFi_Check();

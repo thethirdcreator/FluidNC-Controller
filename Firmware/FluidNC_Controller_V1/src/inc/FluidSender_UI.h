@@ -7,45 +7,43 @@
 #include "inc/FluidSender_Keypad.h"
 
 // Version
-//     u8g2.setCursor(128 - u8g2.getStrWidth("V:1.X"), 64);
-#define V_POS_X (128 - u8g2->getStrWidth("V:1.X"))
+#define V_POS_X (128 - driver->getStrWidth("V:1.X"))
 #define V_POS_Y 64
 
 // IP
-//     u8g2.setCursor(0, 64);
 #define IP_POS_X 0
 #define IP_POS_Y 64
 
 // Pos
-//       u8g2.setCursor(40, 24);
 #define POS_POS_X 40
 #define POS_POS_Y 24
 
-void mainDraw();
-void MainScreen(U8G2 *u8g2);
-void AlarmScreen();
-void SettingsScreen();
+void MainScreen(U8G2 *driver);
+void AlarmScreen(U8G2 *driver);
+void SettingsScreen(U8G2 *driver);
 
 
 
 typedef struct
 {
-    void (*screen)(U8G2 *u8g2);
+    void (*screen)(U8G2 *driver);
     // void (*keypadEventListener)(KeypadEvent key);
 
 }UI_Context_t;
 
-typedef struct 
+class FluidSender_UI_Class
 {
-    void (*draw)(void*);
-    UI_Context_t *context;
+    private:
     U8G2 *dispDriver;
     Keypad *keyDriver;
-}FluidSender_UI_t;
+    public:
 
-// extern FluidSender_UI_t UI;
+    void begin(U8G2 *d_driver, Keypad *k_driver);
+    // void (*draw)();
+    void draw();
+    UI_Context_t *context;
+};
 
-void UIbeginCustom(FluidSender_UI_t *UI);
-void mainDraw(FluidSender_UI_t *UI);
+extern UI_Context_t mainContext;
 
 #endif

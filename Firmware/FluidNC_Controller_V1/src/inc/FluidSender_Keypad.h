@@ -24,9 +24,6 @@
 #define KPD_9 '9'
 #define KPD_0 '0'
 
-#define ROWS  5
-#define COLS  4
-
 // extern Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 extern Keypad myKeypad;
 
