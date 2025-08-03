@@ -1,7 +1,7 @@
 
-#include "inc/FluidNC_Updater.hpp"
+#include "inc/FluidNC_Updater.h"
 
-U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
+// U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 AutoOTA ota(FluidNC_Controller_Ver, "thethirdcreator/FluidNC-Controller-Updates");
 
 void ARDUINO_ISR_ATTR WiFiHandler()

@@ -1,4 +1,4 @@
-#include "inc/FluidNC_Parser.hpp"
+#include "inc/FluidNC_Parser.h"
 
 FluidNC_Parser_Class FluidNC_Parser;
 

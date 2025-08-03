@@ -5,7 +5,7 @@
 #include <U8g2lib.h>
 #include <AutoOTA.h>
 #include "inc/WiFiList.h"
-#include "inc/Debug.hpp"
+#include "inc/Debug.h"
 
 #define FluidNC_Controller_Ver "1.0"
 #define WiFi_Check_Freq 10000 // ms

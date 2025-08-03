@@ -4,8 +4,8 @@
 #include <string.h>
 #include <StringUtils.h>
 #include <Arduino.h>
-#include "inc/FluidNC_CNC.hpp"
-#include "inc/Debug.hpp"
+#include "inc/FluidNC_CNC.h"
+#include "inc/Debug.h"
 
 #define UART_RX_BUFF_SIZE 100
 #define END_MARKER '\n'

@@ -81,7 +81,7 @@ public:
     FluidNC_CNC_Axis_Class x, y, z;
 
     FluidStatus getStatus();
-    
+
     void begin();
     void reset();
     void changeStatus(FluidStatus status);

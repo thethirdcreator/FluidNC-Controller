@@ -1,4 +1,4 @@
-#include "inc/FluidNC_CNC.hpp"
+#include "inc/FluidNC_CNC.h"
 
 FluidNC_CNC_Class CNC;
 

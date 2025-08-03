@@ -10,16 +10,16 @@
 // #include <menuIO/serialIn.h>
 
 #include "inc/WiFiList.h"
-#include "inc/FluidNC_Keypad.h"
+#include "inc/FluidSender_Keypad.h"
 #include "inc/FluidNC_Cmd.h"
 
-#include "inc/FluidNC_Updater.hpp"
+#include "inc/FluidNC_Updater.h"
 
-#include "inc/FluidNC_CNC.hpp"
-#include "inc/FluidNC_Parser.hpp"
+#include "inc/FluidNC_CNC.h"
+#include "inc/FluidNC_Parser.h"
 #include "inc/global.h"
-#include "inc/FluidSender_UI.hpp"
-#include "inc/Debug.hpp"
+#include "inc/FluidSender_UI.h"
+#include "inc/Debug.h"
 
 //=========================
 // Firmware version
@@ -62,6 +62,9 @@ volatile char key;
 #define U8_Width 128
 #define U8_Height 64
 
+U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);  
+FluidSender_UI_t UI;
+
 void setup()
 {
 
@@ -73,10 +76,11 @@ void setup()
     u8g2.enableUTF8Print();
     u8g2.setFont(u8g2_font_haxrcorp4089_t_cyrillic);
 
-    //   keypad.addEventListener(keypadEvent);
+    // keypad.addEventListener(keypadEvent);
 
     _DebugPrintLn("Sender has started!");
 
+    UIbeginCustom(&UI);
     FluidNC_Parser.reset();
     CNC.reset();
 }
@@ -85,7 +89,7 @@ void loop()
 {
     WiFi_Check();
     FluidNC_Parser.update();
-    UI.draw();
+    // UI.draw();
     //   key = keypad.getKey();
 }
 
