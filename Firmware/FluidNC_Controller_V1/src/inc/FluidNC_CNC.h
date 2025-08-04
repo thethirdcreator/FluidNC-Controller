@@ -9,7 +9,7 @@
 #define _CNC_Print(Data) _CNC_Port.print(Data)
 #define _CNC_PrintLn(Data) _CNC_Port.println(Data)
 
-#define _FLUID_CMD_RESET 0x18
+#define _FLUID_CMD_CANCEL 0x18
 
 enum FluidBool : uint8_t
 {
@@ -87,7 +87,10 @@ public:
     void begin();
     void reset();
     void changeStatus(FluidStatus status);
+    void requestFluidStatus();
 };
+
+String statusToText(FluidStatus);
 
 extern FluidNC_CNC_Class CNC;
 

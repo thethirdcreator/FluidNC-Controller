@@ -56,27 +56,37 @@ void FluidSender_UI_Class::draw()
 void MainScreen(U8G2 *driver)
 {
     driver->setCursor(0, 8);
-    driver->print("Main screen");
+    // driver->print("Main screen");
+    driver->print("Status: ");
+    driver->print(statusToText(CNC.getStatus()));
 
     driver->setCursor(V_POS_X, V_POS_Y);
     driver->print("V:");
     driver->print(ota.version());
 
     driver->setCursor(IP_POS_X, IP_POS_Y);
-    driver->print("IP:");
-    driver->print(WiFi.localIP());
+    if (WiFi.isConnected())
+    {
+        driver->print("IP:");
+        driver->print(WiFi.localIP());
+    }
+    else 
+    {
+        driver->print("WiFi not connected");
+    }
 
     driver->setCursor(POS_POS_X, POS_POS_Y);
-    driver->print(CNC.x.getLocalPos());
+    driver->print(CNC.x.getRealPos());
 
-    if (CNC.inputPos.length()) // Отображать только, когда ввод не нулевой
+    // Отображать только, когда ввод не нулевой
+    if (CNC.inputPos.length())
     {
-    // Вывод нового положения
-    driver->setCursor(64 - (CNC.inputPos.length() * 4) - driver->getStrWidth("->"), 24 + 5 + 16);
-    driver->setCursor(64, 32);
-    driver->print("->");
-    driver->print(CNC.inputPos);
-    driver->print("<-");
+        // Вывод нового положения
+        driver->setCursor(64 - (CNC.inputPos.length() * 4) - driver->getStrWidth("->"), 24 + 5 + 16);
+        driver->setCursor(64, 32);
+        driver->print("->");
+        driver->print(CNC.inputPos);
+        driver->print("<-");
     }
 }
 
@@ -84,15 +94,22 @@ void AlarmScreen(U8G2 *driver)
 {
 
     driver->setCursor(0, 8);
-    driver->print("ALARM! Hold F1 to reset");
+    driver->print("ALARM! Hold ESC to reset");
 
     driver->setCursor(V_POS_X, V_POS_Y);
     driver->print("V:");
     driver->print(ota.version());
 
     driver->setCursor(IP_POS_X, IP_POS_Y);
-    driver->print("IP:");
-    driver->print(WiFi.localIP());
+    if (WiFi.isConnected())
+    {
+        driver->print("IP:");
+        driver->print(WiFi.localIP());
+    }
+    else 
+    {
+        driver->print("WiFi not connected");
+    }
 }
 
 void HomingPendingScreen(U8G2 *driver)

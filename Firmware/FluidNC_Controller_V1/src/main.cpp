@@ -57,13 +57,11 @@ void setPosition(int dir, int b_isRel);
 void jog(int dir);
 volatile char key;
 
-// hw_timer_t *BaseTimer = NULL;
-// volatile uint64_t isrCounter = 0;
+// hw_timer_t *FluidStatusTimer = NULL;
 
-// void ARDUINO_ISR_ATTR onTimer()
+// void ARDUINO_ISR_ATTR GetCNCStatus()
 // {
-
-//   isrCounter++;
+//     CNC.requestFluidStatus();
 // }
 
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
@@ -83,6 +81,10 @@ void setup()
 
     myKeypad.addEventListener(keypadEvent);
 
+    // FluidStatusTimer = timerBegin(255, 10, true);
+    // timerAttachInterrupt(FluidStatusTimer, GetCNCStatus, 1);
+    // timerAlarmEnable(FluidStatusTimer);
+
     _DebugPrintLn("Sender has started!");
 
     UI.begin(&u8g2, &myKeypad);
@@ -90,7 +92,6 @@ void setup()
     CNC.reset();
 
     UI.context = &mainContext;
-    UI.draw();
 }
 
 void loop()
@@ -172,8 +173,10 @@ void keypadEvent(KeypadEvent key)
         {
             CNC.inputPos = "0"; // Set position to home
             // setPosition(0, B_COORD_ABS);
+            CNC.requestFluidStatus();
             break;
         }
+        //<-
         case KPD_LT:
         { //<-
             // jog(1);
@@ -181,8 +184,9 @@ void keypadEvent(KeypadEvent key)
 
             break;
         }
+        //->
         case KPD_RT:
-        { //->
+        {
             // jog(0);
             _DebugPrintLn("Jog rigth");
 
@@ -190,15 +194,14 @@ void keypadEvent(KeypadEvent key)
         }
         case KPD_ESC:
         {
-            CNC.inputPos = "";
+            CNC.reset();
             break;
         }
         case KPD_F2:
         {
             CNC.x.setHomingStatus(HOME_OK);
             _DebugPrintLn("Home");
-            _CNC_Print("$H");
-            _CNC_Print('\n');
+            _CNC_Print("$H\n");
             // CNCPrint("$$\n"); // Запросить настройки
             break;
         }
