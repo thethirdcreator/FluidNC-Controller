@@ -7,7 +7,7 @@
 #include "inc/FluidNC_CNC.h"
 #include "inc/Debug.h"
 
-#define UART_RX_BUFF_SIZE 100
+#define UART_RX_BUFF_SIZE 255
 #define END_MARKER '\n'
 #define CNC_PORT Serial1
 
@@ -33,9 +33,11 @@ private:
     void parseMsg();
     void parseCmd();
     void prePass();
+    uint8_t busyFlag;
 
 public:
     void reset();
+    
     // https://isocpp.org/wiki/faq/pointers-to-members
     void update(); // Handler указывающий на текущую операцию
 

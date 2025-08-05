@@ -50,13 +50,14 @@ private:
     float localOffset;
     uint32_t feedRate;
     FluidHomingStatus homingStatus;
-
+    
     FluidStatus setRealPos();  // Устанавливает действительное положение с проверкой на минимальное и максимальное
     FluidStatus setLocalPos(); // Нужно ли, или должно вычисляться автоматически?
     FluidStatus setMin();      // Принимает значение из настроек при инициализации или можно выставить самому?
     FluidStatus setMax();      // Принимает значение из настроек при инициализации или можно выставить самому?
-
-public:
+    
+    public:
+    uint32_t speed;
     FluidStatus axisDoHoming();
     void setHomingStatus(FluidHomingStatus);
     FluidHomingStatus getHomingStatus();
@@ -67,6 +68,8 @@ public:
     float getMax();      // Отдает float значение
 
     void setPos(float pos);
+    void moveTo(float pos);
+    void moveBy(float pos, uint8_t dir);
 };
 
 class FluidNC_CNC_Class
@@ -80,6 +83,7 @@ private:
 
 public:
     FluidNC_CNC_Axis_Class x, y, z;
+    unsigned long lastResponceTime;
 
     FluidStatus getStatus();
     String inputPos;

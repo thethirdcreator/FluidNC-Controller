@@ -5,6 +5,8 @@
 #include <U8g2lib.h>
 #include <AutoOTA.h>
 #include "inc/WiFiList.h"
+#include "inc/FluidNC_CNC.h"
+#include "inc/FluidSender_UI.h"
 #include "inc/Debug.h"
 
 #define FluidNC_Controller_Ver "1.0"
@@ -14,6 +16,6 @@ extern AutoOTA ota;
 
 void WiFi_Check();
 void ARDUINO_ISR_ATTR WiFiHandler();
-void FluidNC_Updater();
+
 
 #endif

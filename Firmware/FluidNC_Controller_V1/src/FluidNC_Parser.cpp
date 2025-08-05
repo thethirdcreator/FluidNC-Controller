@@ -11,6 +11,7 @@ void FluidNC_Parser_Class::reset()
 {
     memset(RX_BUFF, 0, sizeof(RX_BUFF));
     buff_ndx = 0;
+    busyFlag = 0;
     state = ST_NONE;
 }
 
@@ -26,23 +27,27 @@ void FluidNC_Parser_Class::receiveChar()
         {
             RX_BUFF[buff_ndx] = '\0'; // terminate the string
             // Заменить на обработчик парсинга
+            busyFlag = 0;
             prePass();
+
         }
         else
         {
             RX_BUFF[buff_ndx++] = c;
+            busyFlag = 1;
             // очистка буфера, сброс счетчика буфера, сброс состояния
 
-            if (buff_ndx >= UART_RX_BUFF_SIZE)
-                reset();
+            // if (buff_ndx >= UART_RX_BUFF_SIZE)
+                // reset();
+
             // Можно делать и так:
             // Перезаписываем последний символ, пока не получим конец сообщения
             // Но в любом из случаев надо добавить сброс по времени ожидания
 
-            // if (this->buff_ndx >= UART_RX_BUFF_SIZE)
-            // {
-            //   this->buff_ndx = UART_RX_BUFF_SIZE - 1;
-            // }
+            if (this->buff_ndx >= UART_RX_BUFF_SIZE)
+            {
+              this->buff_ndx = UART_RX_BUFF_SIZE - 1;
+            }
         }
     }
 }
@@ -50,6 +55,7 @@ void FluidNC_Parser_Class::receiveChar()
 // определяет тип сообщения
 void FluidNC_Parser_Class::prePass()
 {
+    CNC.lastResponceTime = millis();
     switch (RX_BUFF[0])
     {
     case '<':

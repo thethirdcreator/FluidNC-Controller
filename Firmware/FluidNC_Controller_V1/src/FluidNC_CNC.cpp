@@ -42,9 +42,77 @@ void FluidNC_CNC_Axis_Class::setHomingStatus(FluidHomingStatus status)
 {
     this->homingStatus = status;
 }
+
+void FluidNC_CNC_Axis_Class::moveTo(float pos)
+{
+    _CNC_Print("$J=");
+
+    // if (b_isRel)
+    // // G91 - Incremental distance mode.
+    //     Serial1.print("G91");
+    // else
+    // // G53 Use Machine Coordinates
+    //     Serial1.print("G53");
+
+    _CNC_Print("G53");
+    // G1 Motion at Feed Rate
+    // _CNC_Print("G1 ");
+    // Ось
+    _CNC_Print("X");
+    _CNC_Print(CNC.inputPos);
+
+    _CNC_Print(" F");
+    _CNC_Print(speed);
+    _CNC_Print("\n");
+
+    CNC.inputPos.clear();
+
+}
+
+void FluidNC_CNC_Axis_Class::moveBy(float pos, uint8_t dir)
+{
+    _CNC_Print("$J=");
+
+    // if (b_isRel)
+    // // G91 - Incremental distance mode.
+    //     Serial1.print("G91");
+    // else
+    // // G53 Use Machine Coordinates
+    //     Serial1.print("G53");
+
+    _CNC_Print("G91");
+    // G1 Motion at Feed Rate
+    // _CNC_Print("G1 ");
+    // Ось
+    if(dir)
+    _CNC_Print("X");
+    else
+    _CNC_Print("X-");
+
+    _CNC_Print(CNC.inputPos);
+
+    _CNC_Print(" F");
+    _CNC_Print(speed);
+    _CNC_Print("\n");
+
+    CNC.inputPos.clear();
+
+}
 // -----------------------------
 // CNC
 // -----------------------------
+void FluidNC_CNC_Class::begin()
+{
+    reset();
+    // G21 - Use millimeters for length and speed values
+    _CNC_Print("G21");
+    lastResponceTime = millis();
+
+    this->x.speed = 2300;
+    this->y.speed = 2300;
+    this->z.speed = 2300;
+}
+
 void FluidNC_CNC_Class::changeStatus(FluidStatus status)
 {
     this->status = status;

@@ -2,6 +2,7 @@
 #include <U8g2lib.h> // Драйвер дисплея
 #include <AutoOTA.h> // Обновление по воздуху
 #include <WiFi.h>
+#include <math.h>
 // #include <menu.h> // Для отображения меню на дисплее и в Serial
 // #include <menuIO/chainStream.h>
 // #include <menuIO/u8g2Out.h>
@@ -57,12 +58,15 @@ void setPosition(int dir, int b_isRel);
 void jog(int dir);
 volatile char key;
 
-// hw_timer_t *FluidStatusTimer = NULL;
+hw_timer_t *FluidStatusTimer = NULL;
 
-// void ARDUINO_ISR_ATTR GetCNCStatus()
-// {
-//     CNC.requestFluidStatus();
-// }
+void ARDUINO_ISR_ATTR GetCNCStatus()
+{
+    if (abs((int)(millis() - CNC.lastResponceTime)) >= 240)
+    {
+        CNC.requestFluidStatus();
+    }
+}
 
 U8G2_ST7920_128X64_1_HW_SPI u8g2(U8G2_R0, 12);
 Keypad myKeypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
@@ -81,15 +85,22 @@ void setup()
 
     myKeypad.addEventListener(keypadEvent);
 
-    // FluidStatusTimer = timerBegin(255, 10, true);
-    // timerAttachInterrupt(FluidStatusTimer, GetCNCStatus, 1);
-    // timerAlarmEnable(FluidStatusTimer);
+    FluidStatusTimer = timerBegin(0, 8000, 1);
+    if (FluidStatusTimer != NULL)
+    {
+        timerAttachInterrupt(FluidStatusTimer, GetCNCStatus, 1);
+        timerAlarmWrite(FluidStatusTimer, 2500, 1);
+        timerAlarmEnable(FluidStatusTimer);
+        _DebugPrintLn("Timer initiated");
+    }
+    else
+        _DebugPrintLn("Timer initiation failed");
 
     _DebugPrintLn("Sender has started!");
 
     UI.begin(&u8g2, &myKeypad);
     FluidNC_Parser.reset();
-    CNC.reset();
+    CNC.begin();
 
     UI.context = &mainContext;
 }
@@ -114,53 +125,56 @@ void keypadEvent(KeypadEvent key)
         _DebugPrint("Key pressed: ");
         _DebugPrintLn(key); // Дебаг для вывода нажатой кнопки
 
-        if (CNC.x.getHomingStatus() == HOME_OK)
+        // if (CNC.x.getHomingStatus() == HOME_OK)
+        // {
+        if (key >= '0' && key <= '9')
         {
-            if (key >= '0' && key <= '9')
+            if ((CNC.inputPos.length() <= 4))
             {
-                if ((CNC.inputPos.length() <= 4))
-                {
-                    if (key == '0' && !CNC.inputPos.length())
-                        return;
+                if (key == '0' && !CNC.inputPos.length())
+                    return;
 
-                    CNC.inputPos += key;
-                }
-
-                if (CNC.inputPos.toInt() > 1500)
-                    CNC.inputPos.clear();
-
-                _DebugPrintLn(CNC.inputPos);
+                CNC.inputPos += key;
             }
 
-            if (key == KPD_AST)
-                CNC.inputPos += '.';
-
-            switch (key)
-            {
-            case KPD_F1:
-
-                break;
-            case KPD_F2:
-                CNC.x.setHomingStatus(HOME_OK);
-                break;
-            case KPD_ESC:
+            if (CNC.inputPos.toInt() > 1500)
                 CNC.inputPos.clear();
 
-                break;
-            case KPD_ENT: // OK
-                // setPosition(0, B_COORD_ABS);
-                break;
-            case KPD_DN: //<-
-                // setPosition(1, B_COORD_REL);
-                break;
-            case KPD_UP: //->
-                // setPosition(0, B_COORD_REL);
-                break;
-            default:
-                break;
-            }
-            // homingStatus == Ok-----------------------------------------
+            _DebugPrintLn(CNC.inputPos);
         }
+
+        if (key == KPD_AST)
+            CNC.inputPos += '.';
+
+        switch (key)
+        {
+        case KPD_F1:
+
+            break;
+        case KPD_F2:
+            CNC.x.setHomingStatus(HOME_OK);
+            break;
+        case KPD_ESC:
+            CNC.inputPos.clear();
+
+            break;
+        case KPD_ENT: // OK
+            // setPosition(0, B_COORD_ABS);
+            CNC.x.moveTo(CNC.inputPos.toFloat());
+            break;
+        case KPD_LT: //<-
+            // setPosition(1, B_COORD_REL);
+            CNC.x.moveBy(CNC.inputPos.toFloat(), 0);
+            break;
+        case KPD_RT: //->
+            // setPosition(0, B_COORD_REL);
+            CNC.x.moveBy(CNC.inputPos.toFloat(), 1);
+            break;
+        default:
+            break;
+        }
+        // homingStatus == Ok-----------------------------------------
+        // }
     }
 
     case RELEASED:
@@ -169,13 +183,13 @@ void keypadEvent(KeypadEvent key)
     case HOLD:
         switch (key)
         {
-        case KPD_F1:
-        {
-            CNC.inputPos = "0"; // Set position to home
-            // setPosition(0, B_COORD_ABS);
-            CNC.requestFluidStatus();
-            break;
-        }
+        // case KPD_F1:
+        // {
+        //     CNC.inputPos = ""; // Set position to home
+        //     // setPosition(0, B_COORD_ABS);
+        //     CNC.requestFluidStatus();
+        //     break;
+        // }
         //<-
         case KPD_LT:
         { //<-
@@ -197,7 +211,7 @@ void keypadEvent(KeypadEvent key)
             CNC.reset();
             break;
         }
-        case KPD_F2:
+        case KPD_F1:
         {
             CNC.x.setHomingStatus(HOME_OK);
             _DebugPrintLn("Home");
@@ -207,7 +221,7 @@ void keypadEvent(KeypadEvent key)
         }
         case KPD_AST:
         {
-            FluidNC_Updater();
+            FluidNC_Updater(&UI);
             break;
         }
         }
